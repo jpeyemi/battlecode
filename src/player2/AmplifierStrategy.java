@@ -2,9 +2,13 @@ package player2;
 
 import battlecode.common.*;
 
-public class BoosterStrategy {
-    static void runBooster(RobotController rc) throws GameActionException {
+public class AmplifierStrategy {
+    static void runAmplifier(RobotController rc) throws GameActionException {
         scanIslands(rc);
+        Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+        }
         // move to furtherst corner and run away from enemies then move randomly
     }
 

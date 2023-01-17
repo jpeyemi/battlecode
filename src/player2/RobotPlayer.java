@@ -93,7 +93,7 @@ public strictfp class RobotPlayer {
                     case LAUNCHER: LauncherStrategy.runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
                     case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:       break;
+                    case AMPLIFIER: AmplifierStrategy.runAmplifier(rc);      break;
                 }
 
             } catch (GameActionException e) {
@@ -176,6 +176,16 @@ public strictfp class RobotPlayer {
                         }
                     }
                 } else {
+                    if(rng.nextBoolean()){
+                        for( Direction dir : directions){
+                            MapLocation newLoc = rc.getLocation().add(dir);
+                            rc.setIndicatorString("Trying to build a Amplifier");
+                            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
+                                rc.buildRobot(RobotType.AMPLIFIER, newLoc);
+                                break;
+                            }
+                        }
+                    }
                     for( Direction dir : directions){
                         MapLocation newLoc = rc.getLocation().add(dir);
                         rc.setIndicatorString("Trying to build a carrier");
@@ -199,6 +209,12 @@ public strictfp class RobotPlayer {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
+        }
+        if (turnCount % 20 == 19){
+            rc.setIndicatorString("Trying to build a Amplifier");
+            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
+                rc.buildRobot(RobotType.AMPLIFIER, newLoc);
+            }
         }
         if (rng.nextBoolean()) {
             // Let's try to build a carrier.
