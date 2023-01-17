@@ -22,6 +22,7 @@ public strictfp class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
+    static Squad rcsquad = null;
 
     /**
      * A random number generator.
@@ -112,6 +113,68 @@ public strictfp class RobotPlayer {
      */
     static void runHeadquarters(RobotController rc) throws GameActionException {
         // Pick a direction to build in.
+        // Direction dir = directions[rng.nextInt(directions.length)];
+        // MapLocation newLoc = rc.getLocation().add(dir);
+        if (turnCount == 1) {
+            Communication.addHeadquarter(rc);
+        } else if (turnCount == 2) {
+            Communication.updateHeadquarterInfo(rc);
+        }
+        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
+        int carrierCount = 0;
+        for (RobotInfo r : robots){
+            if(r.getType() == RobotType.CARRIER){
+                carrierCount++;
+            }
+        }
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam());
+        if (robots.length > 10) {
+            // spawn in bulk
+            if(turnCount % 20 == 0) {
+                if(rc.getNumAnchors(Anchor.STANDARD) + rc.getNumAnchors(Anchor.ACCELERATING) < 5){
+                    Anchor builtAnchor;
+                    if (turnCount > 750 && turnCount < 1500)
+                        builtAnchor = Anchor.ACCELERATING;
+                    else builtAnchor = Anchor.STANDARD;
+                    for(int i = 0; i < 5; i++){
+                        if (rc.canBuildAnchor(builtAnchor)) {
+                            // If we can build an anchor do it!
+                            rc.buildAnchor(builtAnchor);
+                            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+                        }
+                    }
+                }
+            }
+            if(enemies.length > robots.length){
+                for( Direction dir : directions){
+                    MapLocation newLoc = rc.getLocation().add(dir);
+                    rc.setIndicatorString("Trying to build a carrier");
+                    if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                        rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                    }
+                }
+            } else {
+                if(rng.nextBoolean()){
+                    for( Direction dir : directions){
+                        MapLocation newLoc = rc.getLocation().add(dir);
+                        rc.setIndicatorString("Trying to build a launcher");
+                        if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                            rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                        }
+                    }
+                } else {
+                    for( Direction dir : directions){
+                        MapLocation newLoc = rc.getLocation().add(dir);
+                        rc.setIndicatorString("Trying to build a carrier");
+                        if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+                            rc.buildRobot(RobotType.CARRIER, newLoc);
+                        }
+                    }
+                }
+            }
+
+        }
+
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
         if (turnCount == 1) {
@@ -151,5 +214,11 @@ public strictfp class RobotPlayer {
         if(rc.canMove(dir)) rc.move(dir);
         else moveRandom(rc);
     }
+
+    static Squad getSquad(RobotController rc){
+        return rcsquad;
+    }
+
+
 
 }

@@ -114,9 +114,13 @@ public strictfp class RobotPlayer {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
+        Anchor builtAnchor;
+        if (turnCount > 750 && turnCount < 1500)
+            builtAnchor = Anchor.ACCELERATING;
+        else builtAnchor = Anchor.STANDARD;
+        if (rc.canBuildAnchor(builtAnchor)) {
             // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
+            rc.buildAnchor(builtAnchor);
             rc.setIndicatorString("Building anchor! " + rc.getAnchor());
         }
         if (turnCount%2 == 0) {

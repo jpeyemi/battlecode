@@ -1,6 +1,7 @@
 package player2;
 
 import battlecode.common.*;
+import battlecode.world.Island;
 
 public class CarrierStrategy {
     
@@ -23,9 +24,6 @@ public class CarrierStrategy {
         if(wellLoc == null) scanWells(rc);
         scanIslands(rc);
 
-        //Collect from well if close and inventory not full
-        if(wellLoc != null && rc.canCollectResource(wellLoc, -1)) rc.collectResource(wellLoc, -1);
-
         //Transfer resource to headquarters
         depositResource(rc, ResourceType.ADAMANTIUM);
         depositResource(rc, ResourceType.MANA);
@@ -34,19 +32,36 @@ public class CarrierStrategy {
             rc.takeAnchor(hqLoc, Anchor.STANDARD);
             anchorMode = true;
         }
+
+        if(rc.canTakeAnchor(hqLoc, Anchor.ACCELERATING)) {
+            rc.takeAnchor(hqLoc, Anchor.ACCELERATING);
+            anchorMode = true;
+        }
+
+        //Collect from well if close and inventory not full
+        if(wellLoc != null && rc.canCollectResource(wellLoc, -1)) rc.collectResource(wellLoc, -1);
+
+        
         
         //no resources -> look for well
         if(anchorMode) {
             if(islandLoc == null) {
                 for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
                     MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                    float lowestDistance = 100;
                     if (islandNearestLoc != null) {
-                        islandLoc = islandNearestLoc;
-                        break;
+                        float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+                        if(Communication.readTeamHoldingIsland(rc, i) == Team.NEUTRAL){
+                            islandLoc = islandNearestLoc;
+                            lowestDistance = dist;
+                        }
                     }
                 }
             }
-            else RobotPlayer.moveTowards(rc, islandLoc); 
+            if(islandLoc != null){
+                Pathing.moveTowards(rc, islandLoc); 
+            }
+            
 
             if(rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == Team.NEUTRAL) {
                 rc.placeAnchor();
@@ -58,11 +73,11 @@ public class CarrierStrategy {
             if(total == 0) {
                 //move towards well or search for well
                 if(wellLoc == null) RobotPlayer.moveRandom(rc);
-                else if(!rc.getLocation().isAdjacentTo(wellLoc)) RobotPlayer.moveTowards(rc, wellLoc);
+                else if(!rc.getLocation().isAdjacentTo(wellLoc)) Pathing.moveTowards(rc, wellLoc);
             }
             if(total == GameConstants.CARRIER_CAPACITY) {
                 //move towards HQ
-                RobotPlayer.moveTowards(rc, hqLoc);
+                Pathing.moveTowards(rc, hqLoc);
             }
         }
         Communication.tryWriteMessages(rc);

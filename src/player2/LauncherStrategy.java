@@ -17,10 +17,12 @@ public class LauncherStrategy {
         priority = new HashMap<RobotType, Integer>();
         priority.put(RobotType.DESTABILIZER, 1);
         priority.put(RobotType.BOOSTER, 2);
-        priority.put(RobotType.CARRIER, 4);
-        priority.put(RobotType.LAUNCHER, 3);
-        priority.put(RobotType.HEADQUARTERS, 3);
+        priority.put(RobotType.CARRIER, 5);
+        priority.put(RobotType.LAUNCHER, 4);
+        priority.put(RobotType.HEADQUARTERS, 6);
+        priority.put(RobotType.AMPLIFIER, 3);
     }
+    static MapLocation islandLoc;
 
     static void runLauncher(RobotController rc) throws GameActionException {
         // Try to attack someone
@@ -29,7 +31,7 @@ public class LauncherStrategy {
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
         int lowestHealth = 100;
         int smallestDistance = 100;
-        int bestTarget = 5;
+        int bestTarget = 6;
         RobotInfo target = null;
         if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
@@ -63,32 +65,53 @@ public class LauncherStrategy {
             }
         }
         Communication.tryWriteMessages(rc);
+
         if (target != null){
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
-        }
-        else {
-           
-            WellInfo[] wells = rc.senseNearbyWells();
-            if (wells.length > 0){
-                MapLocation wellLoc = wells[0].getMapLocation();
-                Direction dir = rc.getLocation().directionTo(wellLoc);
-                if (rc.canMove(dir))
-                    rc.move(dir);
-            }
         }
 
         RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, opponent);
         for (RobotInfo enemy : visibleEnemies) {
         	if (enemy.getType() != RobotType.HEADQUARTERS) {
         		MapLocation enemyLocation = enemy.getLocation();
-        		MapLocation robotLocation = rc.getLocation();
-        		Direction moveDir = robotLocation.directionTo(enemyLocation);
-        		if (rc.canMove(moveDir)) {
-        			rc.move(moveDir);
-        		}
+        		//MapLocation robotLocation = rc.getLocation();
+                Pathing.moveTowards(rc, enemyLocation);
+        		// Direction moveDir = robotLocation.directionTo(enemyLocation);
+        		// if (rc.canMove(moveDir)) {
+        		// 	rc.move(moveDir);
+        		// }
         	}
         }
+
+        if(islandLoc == null) {
+            for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
+                MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                float farDistance = 1000;
+                if (islandNearestLoc != null) {
+                    float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+                    if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){  
+                        islandLoc = islandNearestLoc;
+                        farDistance = dist;
+                    }
+                }
+            }
+        }
+        if(islandLoc != null){
+            Pathing.moveTowards(rc, islandLoc);
+            if(rc.getLocation() == islandLoc){
+                islandLoc = null; //expesive potenially
+            } 
+        }
+
+
+        // WellInfo[] wells = rc.senseNearbyWells();
+        // if (wells.length > 0){
+        //     MapLocation wellLoc = wells[0].getMapLocation();
+        //     Pathing.moveTowards(rc, wellLoc);
+        // }
+
+        
         
         // Also try to move randomly.
         Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
