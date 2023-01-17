@@ -71,6 +71,11 @@ public class LauncherStrategy {
                 rc.attack(target.getLocation());
         }
 
+        if(RobotPlayer.follower) {
+            Pathing.moveTowards(rc, RobotPlayer.following.getLocation());
+            return;
+        }
+
         RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, opponent);
         for (RobotInfo enemy : visibleEnemies) {
         	if (enemy.getType() != RobotType.HEADQUARTERS) {

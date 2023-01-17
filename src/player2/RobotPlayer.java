@@ -44,6 +44,8 @@ public strictfp class RobotPlayer {
         Direction.NORTHWEST,
     };
 
+    public static boolean follower = false;
+    public static RobotInfo following;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -60,6 +62,17 @@ public strictfp class RobotPlayer {
 
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
+
+        if(rc.getType() == RobotType.LAUNCHER){
+            for (RobotInfo robot: rc.senseNearbyRobots(2)){
+                if(robot.getType() == RobotType.BOOSTER){
+                    follower = true;
+                    following = robot;
+                    break;
+                }
+            }
+
+        }
 
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
