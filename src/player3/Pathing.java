@@ -20,12 +20,12 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
+        System.out.println("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
         ArrayList<MapLocation> path = pathing(rc.getLocation(), closetToTarget(rc, target), rc);
-        rc.setIndicatorString("" + closetToTarget(rc, target));
-        if (path == null) {
+        if (path == null || path.size() == 0) {
             return;
         }
-        currentDirection = rc.getLocation().directionTo(path.get(1));
+        currentDirection = rc.getLocation().directionTo(path.get(0));
 
         if (rc.canMove(currentDirection)) {
             rc.move(currentDirection);
@@ -56,7 +56,7 @@ public class Pathing {
     }
     // A Star
 
-    static class Node {
+    static class Node implements Comparable<Node>{
         private int x;
         private int y;
         private int h;
@@ -67,8 +67,12 @@ public class Pathing {
         public Node(MapLocation loc) {
             x = loc.x;
             y = loc.y;
+            g = Integer.MAX_VALUE;
             this.loc = loc;
 
+        }
+        public int compareTo(Node o) {
+            return this.g + this.h - o.g - o.h;
         }
         public int getH() {
             return h;
@@ -88,6 +92,12 @@ public class Pathing {
         public void setF(int f) {
             this.f = f;
         }
+        public String toString() {
+            return "" + loc;
+        }
+        public boolean equals(Node o) {
+            return o.loc.equals(this.loc);
+        }
     }
     
     static ArrayList<MapLocation> pathing(MapLocation start, MapLocation end, RobotController robot) throws GameActionException{
@@ -103,7 +113,6 @@ public class Pathing {
                 neighbors.add(new Node(newLoc));
             }
         }
-        
         return neighbors;
     }
 
@@ -121,11 +130,13 @@ public class Pathing {
         start.setG(0);
 
         openList.add(start);
-
+  
         while(!openList.isEmpty()) {
+            // System.out.println(i);
             Node currentNode = openList.poll();
 
             if (currentNode.equals(end)) {
+                System.out.println("Goal state reached!");
                 return reconstructPath(parent, end);
             }
             // Add the current node to the closed list
@@ -133,38 +144,43 @@ public class Pathing {
 
             // Iterate through the current node's neighbors
             for (Node neighbor : getNeighbors(currentNode, rc)) {
+                neighbor.setH(getDistance(neighbor, end));
+                // System.out.println(neighbor);
                 // Check if the neighbor is already in the closed list
                 if (closedList.containsKey(neighbor)) {
                     continue;
                 }
-                parent.put(neighbor, currentNode);
                 // Calculate the new g-value for the neighbor
                 int newG = currentNode.getG() + getDistance(currentNode, neighbor);
-
+                // System.out.println("" + neighbor + " G: "  + neighbor.g);
                 // Check if the new g-value is less than the neighbor's current g-value
                 if (newG < neighbor.getG()) {
                     // Update the neighbor's g-value and f-value
                     neighbor.setG(newG);
                     neighbor.setF(neighbor.getG() + neighbor.getH());
-
+                    
                     // Add the neighbor to the open list
                     openList.add(neighbor);
+                    
                 }
+                parent.put(neighbor, currentNode);  
             }
+            System.out.println(openList);
         }
-
+        System.out.print(parent);
         return null;
     }
-    static ArrayList<MapLocation> reconstructPath(Map<Node, Node> cameFrom, Node current) {
+    static ArrayList<MapLocation> reconstructPath(Map<Node, Node> cameFrom, Node end) {
         ArrayList<MapLocation> path = new ArrayList<>();
-        path.add(current.loc);
+        Node current = end;
 
-        while (cameFrom.containsKey(current)) {
-            current = cameFrom.get(current);
+        while (current != null) {
             path.add(current.loc);
+            current = cameFrom.get(current);
         }
 
         Collections.reverse(path);
+        System.out.println(path);
         return path;
     }
 
