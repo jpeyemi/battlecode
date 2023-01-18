@@ -1,4 +1,4 @@
-package player2;
+package player3;
 
 import battlecode.common.*;
 import java.util.ArrayList;
@@ -20,39 +20,42 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
-        Direction d = rc.getLocation().directionTo(target);
-        if (rc.canMove(d)) {
-            rc.move(d);
-            currentDirection = null; // there is no obstacle we're going around
-        } else {
-            // Going around some obstacle: can't move towards d because there's an obstacle there
-            // Idea: keep the obstacle on our right hand
-
-            if (currentDirection == null) {
-                currentDirection = d;
-            }
-            // Try to move in a way that keeps the obstacle on our right
-            for (int i = 0; i < 8; i++) {
-                if (rc.canMove(currentDirection)) {
-                    rc.move(currentDirection);
-                    currentDirection = currentDirection.rotateRight();
-                    break;
-                } else {
-                    currentDirection = currentDirection.rotateLeft();
-                }
-            }
+        ArrayList<MapLocation> path = pathing(rc.getLocation(), closetToTarget(rc, target), rc);
+        rc.setIndicatorString("" + closetToTarget(rc, target));
+        if (path == null) {
+            return;
         }
+        currentDirection = rc.getLocation().directionTo(path.get(1));
+
+        if (rc.canMove(currentDirection)) {
+            rc.move(currentDirection);
+        }
+        
+        // Direction d = rc.getLocation().directionTo(target);
+        // if (rc.canMove(d)) {
+        //     rc.move(d);
+        //     currentDirection = null; // there is no obstacle we're going around
+        // } else {
+        //     // Going around some obstacle: can't move towards d because there's an obstacle there
+        //     // Idea: keep the obstacle on our right hand
+
+        //     if (currentDirection == null) {
+        //         currentDirection = d;
+        //     }
+        //     // Try to move in a way that keeps the obstacle on our right
+        //     for (int i = 0; i < 8; i++) {
+        //         if (rc.canMove(currentDirection)) {
+        //             rc.move(currentDirection);
+        //             currentDirection = currentDirection.rotateRight();
+        //             break;
+        //         } else {
+        //             currentDirection = currentDirection.rotateLeft();
+        //         }
+        //     }
+        // }
     }
     // A Star
-    static ArrayList<MapLocation> path;
-    static int nodeOn;
-    static RobotController rc;
 
-    public void pathing(MapLocation start, MapLocation end, RobotController robot) throws GameActionException{
-        rc = robot;
-        // path = aStar(new Node(start), new Node(end));
-        nodeOn = 0;
-    }
     static class Node {
         private int x;
         private int y;
@@ -87,7 +90,11 @@ public class Pathing {
         }
     }
     
-    static ArrayList<Node> getNeighbors(Node node) throws GameActionException {
+    static ArrayList<MapLocation> pathing(MapLocation start, MapLocation end, RobotController robot) throws GameActionException{
+        return aStar(new Node(start), new Node(end), robot);
+    }
+
+    static ArrayList<Node> getNeighbors(Node node, RobotController rc) throws GameActionException {
         ArrayList<Node> neighbors = new ArrayList<>();
         for (Direction dir : RobotPlayer.directions) {
             MapLocation newLoc = node.loc.add(dir);
@@ -105,7 +112,7 @@ public class Pathing {
         MapLocation locB = b.loc;
         return locA.distanceSquaredTo(locB);
     }
-    static List<MapLocation> aStar(Node start, Node end) throws GameActionException{
+    static ArrayList<MapLocation> aStar(Node start, Node end, RobotController rc) throws GameActionException{
         PriorityQueue<Node> openList = new PriorityQueue<>();
         HashMap<Node, Integer> closedList = new HashMap<>();
         Map<Node, Node> parent = new HashMap<>();
@@ -125,7 +132,7 @@ public class Pathing {
             closedList.put(currentNode, currentNode.getG());
 
             // Iterate through the current node's neighbors
-            for (Node neighbor : getNeighbors(currentNode)) {
+            for (Node neighbor : getNeighbors(currentNode, rc)) {
                 // Check if the neighbor is already in the closed list
                 if (closedList.containsKey(neighbor)) {
                     continue;
@@ -148,8 +155,8 @@ public class Pathing {
 
         return null;
     }
-    static List<MapLocation> reconstructPath(Map<Node, Node> cameFrom, Node current) {
-        List<MapLocation> path = new ArrayList<>();
+    static ArrayList<MapLocation> reconstructPath(Map<Node, Node> cameFrom, Node current) {
+        ArrayList<MapLocation> path = new ArrayList<>();
         path.add(current.loc);
 
         while (cameFrom.containsKey(current)) {
@@ -159,6 +166,19 @@ public class Pathing {
 
         Collections.reverse(path);
         return path;
+    }
+
+    static MapLocation closetToTarget(RobotController rc, MapLocation target) {
+        if (rc.canSenseLocation(target)) {
+            return target;
+        }
+        // int radius = rc.getType().visionRadiusSquared;
+        Direction dir = rc.getLocation().directionTo(target);
+        MapLocation current = rc.getLocation();
+        while (rc.canSenseLocation(current)) {
+            current = current.add(dir);
+        }
+        return current.add(dir.opposite());
     }
 }
 
