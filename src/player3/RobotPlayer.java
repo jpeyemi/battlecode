@@ -66,7 +66,7 @@ public strictfp class RobotPlayer {
         if(rc.getType() == RobotType.LAUNCHER){
             for (RobotInfo robot: rc.senseNearbyRobots(2)){
                 if(robot.getType() == RobotType.BOOSTER){
-                    follower = true;
+                    //follower = true;
                     following = robot;
                     break;
                 }
@@ -140,63 +140,63 @@ public strictfp class RobotPlayer {
                 carrierCount++;
             }
         }
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam());
-        if (robots.length > 10) {
-            // spawn in bulk
-            if(turnCount % 20 == 0) {
-                if(rc.getNumAnchors(Anchor.STANDARD) + rc.getNumAnchors(Anchor.ACCELERATING) < 5){
-                    Anchor builtAnchor;
-                    if (turnCount > 750 && turnCount < 1500)
-                        builtAnchor = Anchor.ACCELERATING;
-                    else builtAnchor = Anchor.STANDARD;
-                    for(int i = 0; i < 5; i++){
-                        if (rc.canBuildAnchor(builtAnchor)) {
-                            // If we can build an anchor do it!
-                            rc.buildAnchor(builtAnchor);
-                            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-                        }
-                    }
-                }
-            }
-            if(enemies.length > robots.length){
-                for( Direction dir : directions){
-                    MapLocation newLoc = rc.getLocation().add(dir);
-                    rc.setIndicatorString("Trying to build a carrier");
-                    if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                        rc.buildRobot(RobotType.LAUNCHER, newLoc);
-                    }
-                }
-            } else {
-                if(rng.nextBoolean()){
-                    for( Direction dir : directions){
-                        MapLocation newLoc = rc.getLocation().add(dir);
-                        rc.setIndicatorString("Trying to build a launcher");
-                        if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                            rc.buildRobot(RobotType.LAUNCHER, newLoc);
-                        }
-                    }
-                } else {
-                    if(rng.nextBoolean()){
-                        for( Direction dir : directions){
-                            MapLocation newLoc = rc.getLocation().add(dir);
-                            rc.setIndicatorString("Trying to build a Amplifier");
-                            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
-                                rc.buildRobot(RobotType.AMPLIFIER, newLoc);
-                                break;
-                            }
-                        }
-                    }
-                    for( Direction dir : directions){
-                        MapLocation newLoc = rc.getLocation().add(dir);
-                        rc.setIndicatorString("Trying to build a carrier");
-                        if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                            rc.buildRobot(RobotType.CARRIER, newLoc);
-                        }
-                    }
-                }
-            }
+        // RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam());
+        // if (robots.length > 10) {
+        //     // spawn in bulk
+        //     if(turnCount % 20 == 0) {
+        //         if(rc.getNumAnchors(Anchor.STANDARD) + rc.getNumAnchors(Anchor.ACCELERATING) < 5){
+        //             Anchor builtAnchor;
+        //             if (turnCount > 750 && turnCount < 1500)
+        //                 builtAnchor = Anchor.ACCELERATING;
+        //             else builtAnchor = Anchor.STANDARD;
+        //             for(int i = 0; i < 5; i++){
+        //                 if (rc.canBuildAnchor(builtAnchor)) {
+        //                     // If we can build an anchor do it!
+        //                     rc.buildAnchor(builtAnchor);
+        //                     rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     if(enemies.length > robots.length){
+        //         for( Direction dir : directions){
+        //             MapLocation newLoc = rc.getLocation().add(dir);
+        //             rc.setIndicatorString("Trying to build a carrier");
+        //             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+        //                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
+        //             }
+        //         }
+        //     } else {
+        //         if(rng.nextBoolean()){
+        //             for( Direction dir : directions){
+        //                 MapLocation newLoc = rc.getLocation().add(dir);
+        //                 rc.setIndicatorString("Trying to build a launcher");
+        //                 if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+        //                     rc.buildRobot(RobotType.LAUNCHER, newLoc);
+        //                 }
+        //             }
+        //         } else {
+        //             if(rng.nextBoolean()){
+        //                 for( Direction dir : directions){
+        //                     MapLocation newLoc = rc.getLocation().add(dir);
+        //                     rc.setIndicatorString("Trying to build a Amplifier");
+        //                     if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
+        //                         rc.buildRobot(RobotType.AMPLIFIER, newLoc);
+        //                         break;
+        //                     }
+        //                 }
+        //             }
+        //             for( Direction dir : directions){
+        //                 MapLocation newLoc = rc.getLocation().add(dir);
+        //                 rc.setIndicatorString("Trying to build a carrier");
+        //                 if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+        //                     rc.buildRobot(RobotType.CARRIER, newLoc);
+        //                 }
+        //             }
+        //         }
+        //     }
 
-        }
+        // }
 
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
@@ -210,20 +210,27 @@ public strictfp class RobotPlayer {
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
         }
-        if (turnCount % 20 == 19){
+        if (turnCount % 50 == 19){
             rc.setIndicatorString("Trying to build a Amplifier");
             if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
                 rc.buildRobot(RobotType.AMPLIFIER, newLoc);
             }
         }
-        if (rng.nextBoolean()) {
-            // Let's try to build a carrier.
-            rc.setIndicatorString("Trying to build a carrier");
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
+        if(carrierCount < 10){
+            if (rng.nextBoolean()) {
+                // Let's try to build a carrier.
+                rc.setIndicatorString("Trying to build a carrier");
+                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+                    rc.buildRobot(RobotType.CARRIER, newLoc);
+                }
+            } else {
+                // Let's try to build a launcher.
+                rc.setIndicatorString("Trying to build a launcher");
+                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                }
             }
-        } else {
-            // Let's try to build a launcher.
+        }else{
             rc.setIndicatorString("Trying to build a launcher");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
@@ -248,6 +255,16 @@ public strictfp class RobotPlayer {
         return rcsquad;
     }
 
+    static void scan(RobotController rc) throws GameActionException { // scan should only be on recon bots ex: amp and launcher
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot : robots) {
+            if(robot.getType() == RobotType.HEADQUARTERS) {
+                if(robot.getTeam() != rc.getTeam()){
+                    Communication.addEHq(robot, rc);
+                }
+            }
+        }
+    }
 
 
 }

@@ -50,7 +50,7 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
-        System.out.println("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
+        //System.out.println("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
         if (currentPath == null) {
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc), rc);
         }

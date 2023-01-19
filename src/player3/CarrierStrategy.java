@@ -67,6 +67,10 @@ public class CarrierStrategy {
                 rc.placeAnchor();
                 anchorMode = false;
             }
+            Direction moveDir = rc.getLocation().directionTo(Communication.headquarterLocs[0]).opposite();
+            if (rc.canMove(moveDir)) {
+                rc.move(moveDir);
+            }
         }
         else {
             int total = getTotalResources(rc);

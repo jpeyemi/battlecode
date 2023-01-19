@@ -24,6 +24,7 @@ public class LauncherStrategy {
     }
     static MapLocation islandLoc;
 
+
     static void runLauncher(RobotController rc) throws GameActionException {
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
@@ -39,6 +40,10 @@ public class LauncherStrategy {
         Communication.clearObsoleteEnemies(rc);
         if (enemies.length > 0) {
             for (RobotInfo enemy: enemies){
+                if(enemy.getType() == RobotType.HEADQUARTERS){
+                    Communication.addEHq(enemy, rc);
+                    continue;
+                }
                 Communication.reportEnemy(rc, enemy.location);
                 int enemyHealth = enemy.getHealth();
                 int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
@@ -78,24 +83,60 @@ public class LauncherStrategy {
 
         RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, opponent);
         for (RobotInfo enemy : visibleEnemies) {
-        	if (enemy.getType() != RobotType.HEADQUARTERS) {
-        		MapLocation enemyLocation = enemy.getLocation();
-        		//MapLocation robotLocation = rc.getLocation();
-                Pathing.moveTowards(rc, enemyLocation);
-        		// Direction moveDir = robotLocation.directionTo(enemyLocation);
-        		// if (rc.canMove(moveDir)) {
-        		// 	rc.move(moveDir);
-        		// }
-        	}
+            if(enemy.getType() == RobotType.HEADQUARTERS){
+                Communication.addEHq(enemy, rc);
+                target = enemy;
+                break;
+            }
+            Communication.reportEnemy(rc, enemy.location);
+            int enemyHealth = enemy.getHealth();
+            int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
+            RobotType enemyType = enemy.getType();
+            if (priority.containsKey(enemyType) && priority.get(enemyType) < bestTarget){
+                target = enemy;
+                lowestHealth = enemyHealth;
+                smallestDistance = enemyDistance;
+                bestTarget = priority.get(enemyType);
+            }
+            else if (enemyHealth < lowestHealth){
+                target = enemy;
+                lowestHealth = enemyHealth;
+                smallestDistance = enemyDistance;
+                //bestTarget = priority.get(enemyType);
+            }
+            else if (enemyHealth == lowestHealth){
+                if (enemyDistance < smallestDistance){
+                    target = enemy;
+                    smallestDistance = enemyDistance;
+                    //bestTarget = priority.get(enemyType);
+                }
+            }
+        MapLocation enemyLocation = target.getLocation();
+        MapLocation robotLocation = rc.getLocation();
+        //Pathing.moveTowards(rc, enemyLocation);
+        Direction moveDir = robotLocation.directionTo(enemyLocation);
+        if (rc.canMove(moveDir)) {
+            rc.move(moveDir);
+        }
+        	// if (enemy.getType() != RobotType.HEADQUARTERS) {
+        	// 	MapLocation enemyLocation = enemy.getLocation();
+        	// 	MapLocation robotLocation = rc.getLocation();
+            //     Pathing.moveTowards(rc, enemyLocation);
+        	// 	Direction moveDir = robotLocation.directionTo(enemyLocation);
+        	// 	if (rc.canMove(moveDir)) {
+        	// 		rc.move(moveDir);
+        	// 	}
+        	// }
         }
 
         if(islandLoc == null) {
             for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
                 MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-                float farDistance = 1000;
+                double farDistance = 1.0;
                 if (islandNearestLoc != null) {
                     float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-                    if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){  
+                    //if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
+                    if(rc.getLocation() != islandNearestLoc && dist > farDistance) {
                         islandLoc = islandNearestLoc;
                         farDistance = dist;
                     }
@@ -119,6 +160,10 @@ public class LauncherStrategy {
         
         
         // Also try to move randomly.
+        Direction moveDir = rc.getLocation().directionTo(Communication.headquarterLocs[0]).opposite();
+        if (rc.canMove(moveDir)) {
+            rc.move(moveDir);
+        }
         Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);

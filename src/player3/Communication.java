@@ -35,7 +35,7 @@ class Communication {
 
 
     private static List<Message> messagesQueue = new ArrayList<>();
-    private static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
+    public static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
 
 
 
