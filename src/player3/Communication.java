@@ -36,6 +36,7 @@ class Communication {
 
     private static List<Message> messagesQueue = new ArrayList<>();
     public static MapLocation[] headquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
+    public static MapLocation[] eheadquarterLocs = new MapLocation[GameConstants.MAX_STARTING_HEADQUARTERS];
 
 
 
@@ -56,6 +57,15 @@ class Communication {
             if (rc.readSharedArray(i) == iloc) break;
             if (rc.readSharedArray(i) == 0) {
                 rc.writeSharedArray(i, locationToInt(rc, loc));
+                break;
+            }
+        }
+    }
+
+    static void readEHq(RobotController rc) throws GameActionException{
+        for (int i = GameConstants.MAX_STARTING_HEADQUARTERS; i < 2*GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
+            eheadquarterLocs[i] = (intToLocation(rc, rc.readSharedArray(i)));
+            if (rc.readSharedArray(i) == 0) {
                 break;
             }
         }

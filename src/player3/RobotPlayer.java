@@ -205,18 +205,14 @@ public strictfp class RobotPlayer {
         } else if (turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
-        if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getResourceAmount(ResourceType.ADAMANTIUM) > 100) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
-        }
+        
         if (turnCount % 50 == 19){
             rc.setIndicatorString("Trying to build a Amplifier");
             if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
                 rc.buildRobot(RobotType.AMPLIFIER, newLoc);
             }
         }
-        if(carrierCount < 10){
+        if(carrierCount < 4){
             if (rng.nextBoolean()) {
                 // Let's try to build a carrier.
                 rc.setIndicatorString("Trying to build a carrier");
@@ -235,6 +231,11 @@ public strictfp class RobotPlayer {
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
             }
+        }
+        if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getResourceAmount(ResourceType.ADAMANTIUM) > 100) {
+            // If we can build an anchor do it!
+            rc.buildAnchor(Anchor.STANDARD);
+            rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
         }
         Communication.tryWriteMessages(rc);
 

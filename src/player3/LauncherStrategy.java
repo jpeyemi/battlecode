@@ -2,6 +2,8 @@ package player3;
 
 import java.util.HashMap;
 
+import javax.naming.CommunicationException;
+
 import battlecode.common.*;
 
 public class LauncherStrategy {
@@ -75,6 +77,10 @@ public class LauncherStrategy {
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
         }
+        if(Communication.eheadquarterLocs[0] != null){
+            Pathing.moveTowards(rc, Communication.eheadquarterLocs[0]);
+            return;
+        }
 
         if(RobotPlayer.follower) {
             Pathing.moveTowards(rc, RobotPlayer.following.getLocation());
@@ -143,6 +149,9 @@ public class LauncherStrategy {
                 }
             }
         }
+        if(islandLoc == null) {
+            //scanIslands(rc);
+        }
         if(islandLoc != null){
             Pathing.moveTowards(rc, islandLoc);
             if(rc.getLocation() == islandLoc){
@@ -160,13 +169,27 @@ public class LauncherStrategy {
         
         
         // Also try to move randomly.
-        Direction moveDir = rc.getLocation().directionTo(Communication.headquarterLocs[0]).opposite();
-        if (rc.canMove(moveDir)) {
-            rc.move(moveDir);
-        }
+        // Direction moveDir = rc.getLocation().directionTo(Communication.headquarterLocs[0]).opposite();
+        // if (rc.canMove(moveDir)) {
+        //     rc.move(moveDir);
+        // }
         Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);
+        }
+
+    }
+    static void scanIslands(RobotController rc) throws GameActionException {
+        int[] ids = rc.senseNearbyIslands();
+        for(int id : ids) {
+            if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
+                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
+                if(locs.length > 0) {
+                    islandLoc = locs[0];
+                    break;
+                }
+            }
+            Communication.updateIslandInfo(rc, id);
         }
     }
 }
