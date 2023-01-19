@@ -24,8 +24,8 @@ class Communication {
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
 
     // Maybe you want to change this based on exact amounts which you can get on turn 1
-    static final int STARTING_ISLAND_IDX = GameConstants.MAX_STARTING_HEADQUARTERS;
-    private static final int STARTING_ENEMY_IDX = GameConstants.MAX_NUMBER_ISLANDS + GameConstants.MAX_STARTING_HEADQUARTERS;
+    static final int STARTING_ISLAND_IDX = 2*GameConstants.MAX_STARTING_HEADQUARTERS;
+    private static final int STARTING_ENEMY_IDX = GameConstants.MAX_NUMBER_ISLANDS + 2*GameConstants.MAX_STARTING_HEADQUARTERS;
 
     private static final int TOTAL_BITS = 16;
     private static final int MAPLOC_BITS = 12;
@@ -44,6 +44,18 @@ class Communication {
         for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
             if (rc.readSharedArray(i) == 0) {
                 rc.writeSharedArray(i, locationToInt(rc, me));
+                break;
+            }
+        }
+    }
+
+    static void addEHq(RobotInfo ri, RobotController rc) throws GameActionException{
+        MapLocation loc = ri.getLocation();
+        for (int i = GameConstants.MAX_STARTING_HEADQUARTERS; i < 2*GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
+            int iloc = locationToInt(rc, loc);
+            if (rc.readSharedArray(i) == iloc) break;
+            if (rc.readSharedArray(i) == 0) {
+                rc.writeSharedArray(i, locationToInt(rc, loc));
                 break;
             }
         }

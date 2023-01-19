@@ -93,6 +93,19 @@ public class CarrierStrategy {
         }
     }
 
+    static void scan(RobotController rc) throws GameActionException { // scan should only be on recon bots ex: amp and launcher
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot : robots) {
+            if(robot.getType() == RobotType.HEADQUARTERS) {
+                if(robot.getTeam() == rc.getTeam() && hqLoc == null){
+                    hqLoc = robot.getLocation();
+                }else {
+                    Communication.addEHq(robot, rc);
+                }
+            }
+        }
+    }
+
     static void scanWells(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
         if(wells.length > 0) wellLoc = wells[0].getMapLocation();
