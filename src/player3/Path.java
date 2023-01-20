@@ -15,6 +15,7 @@ public class Path {
         rc = robot;
         path = inputPath;
         index = 0;
+        strongPath = true;
     }
 
     public boolean moveOnPath() throws GameActionException {

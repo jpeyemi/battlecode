@@ -50,7 +50,7 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
-        //System.out.println("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
+        // System.out.println("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
         if (currentPath == null) {
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc), rc);
         }
@@ -168,7 +168,7 @@ public class Pathing {
             Node currentNode = openList.poll();
 
             if (currentNode.equals(end)) {
-                System.out.println("Goal state reached!");
+                // System.out.println("Goal state reached!");
                 return reconstructPath(parent, end);
             }
             // Add the current node to the closed list
@@ -197,9 +197,9 @@ public class Pathing {
                 }
                 parent.put(neighbor, currentNode);  
             }
-            System.out.println(openList);
+            // System.out.println(openList);
         }
-        System.out.print(parent);
+        // System.out.print(parent);
         return null;
     }
     static ArrayList<MapLocation> reconstructPath(Map<Node, Node> cameFrom, Node end) {
@@ -212,7 +212,7 @@ public class Pathing {
         }
 
         Collections.reverse(path);
-        System.out.println(path);
+        // System.out.println(path);
         return path;
     }
 
