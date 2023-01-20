@@ -9,6 +9,7 @@ public class Path {
     static ArrayList<MapLocation> path;
     static int index;
     static RobotController rc;
+    static boolean strongPath; 
 
     public Path(ArrayList<MapLocation> inputPath, RobotController robot) {
         rc = robot;
