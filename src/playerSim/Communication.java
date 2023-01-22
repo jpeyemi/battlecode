@@ -20,13 +20,13 @@ class Message {
 
 class Communication {
 
-    private static final int OUTDATED_TURNS_AMOUNT = 30;
+    private static final int OUTDATED_TURNS_AMOUNT = 100;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
-    private static final int MAX_SQUADS = 5;
+    private static final int MAX_SQUADS = 2;
     // Maybe you want to change this based on exact amounts which you can get on turn 1
     static final int STARTING_ISLAND_IDX = 2*GameConstants.MAX_STARTING_HEADQUARTERS + 1;
     private static final int STARTING_LEADER_INDEX = GameConstants.MAX_NUMBER_ISLANDS + STARTING_ISLAND_IDX;
-    private static final int STARTING_ENEMY_IDX = STARTING_LEADER_INDEX + MAX_SQUADS;
+    private static final int STARTING_ENEMY_IDX = STARTING_LEADER_INDEX + 2*MAX_SQUADS;
 
     private static final int TOTAL_BITS = 16;
     private static final int MAPLOC_BITS = 12;
@@ -178,6 +178,13 @@ class Communication {
         return(cycle);
     }
 
+    static boolean squadExists(RobotController rc, int squad) throws GameActionException{
+        if(rc.readSharedArray(squad) == 0){
+            return(false);
+        }
+        return(true);
+    }
+
     static int readSquadLeader(RobotController rc, int squad) {
         try {
             int squadInt = rc.readSharedArray(squad);
@@ -286,7 +293,8 @@ class Communication {
     static int writeSquad(RobotController rc){
         int slot = -1;
         int message = -1;
-        for (int i = STARTING_LEADER_INDEX; i < STARTING_LEADER_INDEX + MAX_SQUADS; i++) {
+        int numbers = -1;
+        for (int i = STARTING_LEADER_INDEX; i < STARTING_LEADER_INDEX + 2*MAX_SQUADS; i+=2) {
             try {
                 int turnCount = rc.readSharedArray(GameConstants.MAX_STARTING_HEADQUARTERS+1);
                 int cycle = 0;
@@ -295,12 +303,15 @@ class Communication {
                     message = bitPackSquadInfo(rc, cycle, rc.getID(), rc.getLocation());
                     return(i);
                 }
+                //bitpack surrounding squad robots
             } catch (GameActionException e) {
                 continue;
             }
         }
         if (slot != -1) {
+            RobotPlayer.leader = true;
             Message msg = new Message(slot, message, RobotPlayer.turnCount);
+
             messagesQueue.add(msg);
         }
         return(-1);
@@ -324,6 +335,26 @@ class Communication {
                 rc.writeSharedArray(i,0);
             }
         }
+    }
+
+    static void joinSquad(RobotController rc, int ind){
+
+    }
+
+    static void joinSquad(RobotController rc) throws GameActionException{
+
+        for (int i = STARTING_LEADER_INDEX; i < STARTING_LEADER_INDEX + 2*MAX_SQUADS; i+=2) {
+            if(rc.readSharedArray(i) == 0 && rc.getID()%10 != 9 && rc.getID()%10 != 8 && rc.getType() == RobotType.LAUNCHER){
+                writeSquad(rc);
+                return;
+            }
+        }
+        int team = RobotPlayer.rng.nextInt(MAX_SQUADS)*2;
+        if(rc.readSharedArray(team) != 0){
+            RobotPlayer.squad = team + STARTING_LEADER_INDEX;
+        }else{
+            RobotPlayer.squad = -1;
+        } 
     }
 
     private static int locationToInt(RobotController rc, MapLocation m) {

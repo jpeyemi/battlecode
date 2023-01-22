@@ -27,6 +27,7 @@ public class CarrierStrategy {
         scanWells(rc);
         if(wellLoc == null && wellLocs.size() > 0) wellLoc = wellLocs.get(RobotPlayer.rng.nextInt(wellLocs.size()));
         scanIslands(rc);
+        RobotPlayer.scan(rc);
 
         //Transfer resource to headquarters
         depositResource(rc, ResourceType.ADAMANTIUM);
@@ -108,19 +109,6 @@ public class CarrierStrategy {
             if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
                 hqLoc = robot.getLocation();
                 break;
-            }
-        }
-    }
-
-    static void scan(RobotController rc) throws GameActionException { // scan should only be on recon bots ex: amp and launcher
-        RobotInfo[] robots = rc.senseNearbyRobots();
-        for(RobotInfo robot : robots) {
-            if(robot.getType() == RobotType.HEADQUARTERS) {
-                if(robot.getTeam() == rc.getTeam() && hqLoc == null){
-                    hqLoc = robot.getLocation();
-                }else {
-                    Communication.addEHq(robot, rc);
-                }
             }
         }
     }

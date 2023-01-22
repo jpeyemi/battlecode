@@ -22,7 +22,11 @@ public strictfp class RobotPlayer {
      * these variables are static, in Battlecode they aren't actually shared between your robots.
      */
     static int turnCount = 0;
-    static Squad rcsquad = null;
+    static boolean leader = false;
+    static int squad = -1; 
+    static int leaderLast = -1;
+    static RobotInfo squadLeader = null;
+    static MapLocation squadLocation = null;
 
     /**
      * A random number generator.
@@ -137,18 +141,52 @@ public strictfp class RobotPlayer {
         else moveRandom(rc);
     }
 
-    static Squad getSquad(RobotController rc){
-        return rcsquad;
-    }
 
     static void scan(RobotController rc) throws GameActionException { // scan should only be on recon bots ex: amp and launcher
+        Communication.clearObsoleteEnemies(rc);
         RobotInfo[] robots = rc.senseNearbyRobots();
         for(RobotInfo robot : robots) {
+            if(robot.getTeam() == rc.getTeam()){
+                if(robot.getID()%10 == leaderLast && robot.getType() == RobotType.LAUNCHER)
+                    squadLeader = robot;
+                else{
+                    squadLeader = null;
+                }
+            }
+            if(robot.getTeam() == rc.getTeam().opponent())
+                Communication.reportEnemy(rc, robot.getLocation());
             if(robot.getType() == RobotType.HEADQUARTERS) {
                 if(robot.getTeam() != rc.getTeam()){
                     Communication.addEHq(robot, rc);
                 }
             }
+        }
+    }
+
+    static void squad(RobotController rc) throws GameActionException{
+        if(leader){
+            Communication.updateSquad(rc, squad);
+            return;
+        } else if(squad == -1 || !(Communication.squadExists(rc, squad))){
+            Communication.joinSquad(rc);
+            if(squad != -1){
+                leaderLast = Communication.readSquadLeader(rc, squad);
+            }
+            
+        }
+        if (squadLeader != null && rc.canSenseRobot(squadLeader.getID())){
+            squadLocation = squadLeader.getLocation();
+        }else if (squad != -1){
+            squadLocation = Communication.readSquadLocation(rc, squad);
+        }
+
+    }
+
+    static void moveSquad(RobotController rc) throws GameActionException{
+        if(leader){
+            return;
+        }else if(squadLocation != null){
+            Pathing.moveTowards(rc, squadLocation);
         }
     }
 

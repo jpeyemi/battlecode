@@ -13,7 +13,8 @@ import java.util.Set;
 class HeadquartersStrategy{
     static boolean anchorTime = true;
     static int anchorCooldown = 0;
-    static int anchorMaxCooldown = 20;
+    static int anchorMaxCooldown = 100;
+    static int openIsland = -1;
 
     static void runHeadquarters(RobotController rc) throws GameActionException {
         if (RobotPlayer.turnCount == 1) {
@@ -21,7 +22,7 @@ class HeadquartersStrategy{
         } else if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
-        
+        Communication.checkSquad(rc);
         buildStrat(rc);
         anchorStrat(rc);
         Communication.tryWriteMessages(rc);
@@ -45,7 +46,7 @@ class HeadquartersStrategy{
                 rc.buildRobot(RobotType.AMPLIFIER, newLoc);
             }
         }
-        if(carrierCount < 4){
+        if(carrierCount < 10){
             if (RobotPlayer.rng.nextBoolean()) {
                 // Let's try to build a carrier.
                 rc.setIndicatorString("Trying to build a carrier");
@@ -59,7 +60,7 @@ class HeadquartersStrategy{
                     rc.buildRobot(RobotType.LAUNCHER, newLoc);
                 }
             }
-        }else if(rc.getNumAnchors(Anchor.STANDARD) > 1){
+        }else {
             rc.setIndicatorString("Trying to build a launcher");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
@@ -73,21 +74,37 @@ class HeadquartersStrategy{
             if(anchorCooldown == 0) anchorTime = true;
         }
 
-        if (rc.canBuildAnchor(Anchor.STANDARD) && isIsland(rc) && anchorTime) {
+        int isl = isIsland(rc);
+
+        if (rc.canBuildAnchor(Anchor.STANDARD) && anchorTime) {
             // If we can build an anchor do it!
             anchorTime = false;
             anchorCooldown = anchorMaxCooldown;
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
+            openIsland = isl;
         }
+        // if(openIsland != isl){
+        //     if (rc.canBuildAnchor(Anchor.STANDARD) && anchorTime) {
+        //         // If we can build an anchor do it!
+        //         anchorTime = false;
+        //         anchorCooldown = anchorMaxCooldown;
+        //         rc.buildAnchor(Anchor.STANDARD);
+        //         rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
+        //         openIsland = isl;
+        //     }
+        // }
+
+
+        
     }
 
-    static boolean isIsland(RobotController rc) throws GameActionException{
+    static int isIsland(RobotController rc) throws GameActionException{
         for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
             if(Communication.readTeamHoldingIsland(rc, i) == Team.NEUTRAL){
-                return(true);
+                return(i);
             }
         }
-        return (false);
+        return (-1);
     }
 }
