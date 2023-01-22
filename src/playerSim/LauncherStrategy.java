@@ -25,12 +25,10 @@ public class LauncherStrategy {
         priority.put(RobotType.AMPLIFIER, 3);
     }
     static MapLocation islandLoc;
-    static boolean toCenter = true;
     
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
-        MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -234,21 +232,25 @@ public class LauncherStrategy {
         // }
 
 
-        if(rc.getLocation().distanceSquaredTo(center) < 6){
-            toCenter = false;
+        if(rc.getLocation().distanceSquaredTo(RobotPlayer.center) < 6){
+            RobotPlayer.toCenter = false;
         }else{
-            if(Communication.headquarterLocs[0] != null && rc.getLocation().distanceSquaredTo(Communication.headquarterLocs[0]) < 6){
-                if(toCenter = false){
-                    toCenter =true;
+            if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 6){
+                if(RobotPlayer.toCenter = false){
+                    RobotPlayer.toCenter =true;
+                    if(RobotPlayer.explore.size()>0){
+                        RobotPlayer.center = RobotPlayer.explore.get(0);
+                        RobotPlayer.explore.remove(0);
+                    }
                 }
                
             }
         }
 
-        if(toCenter){
-            Pathing.moveTowards(rc, center);
+        if(RobotPlayer.toCenter){
+            Pathing.moveTowards(rc, RobotPlayer.center);
         }else{
-            Pathing.moveTowards(rc, Communication.headquarterLocs[0]);
+            Pathing.moveTowards(rc, RobotPlayer.myhq);
         }
         // Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
         // if (rc.canMove(dir)) {

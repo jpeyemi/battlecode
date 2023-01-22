@@ -13,6 +13,18 @@ public class AmplifierStrategy {
         RobotPlayer.scan(rc);
         RobotPlayer.squad(rc);
         RobotPlayer.moveSquad(rc);
+
+        RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        for (RobotInfo enemy : visibleEnemies) {
+            if(enemy.getType() == RobotType.HEADQUARTERS){
+                Communication.addEHq(enemy, rc);
+                Direction moveDir = rc.getLocation().directionTo(enemy.getLocation()).opposite();
+                if (rc.canMove(moveDir)) {
+                    rc.move(moveDir);
+                }
+                break;
+            }
+        }
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);
         if(enemyLocation != null){
             MapLocation robotLocation = rc.getLocation();

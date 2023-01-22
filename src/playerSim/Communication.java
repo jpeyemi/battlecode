@@ -103,7 +103,11 @@ class Communication {
             while (messagesQueue.size() > 0 ) {
                 Message msg = messagesQueue.remove(0); // Take from front or back?
                 if (rc.canWriteSharedArray(msg.idx, msg.value)) {
-                    rc.writeSharedArray(msg.idx, msg.value);
+                    try{
+                        rc.writeSharedArray(msg.idx, msg.value);
+                    } catch (GameActionException e){
+                        continue;
+                    }
                 }
             }
         }

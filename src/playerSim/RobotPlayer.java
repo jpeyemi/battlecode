@@ -2,6 +2,7 @@ package playerSim;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ public strictfp class RobotPlayer {
      */
     static final Random rng = new Random(6147);
 
+    static ArrayList<MapLocation> explore = new ArrayList<MapLocation>();
     /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
         Direction.NORTH,
@@ -50,6 +52,9 @@ public strictfp class RobotPlayer {
 
     public static boolean follower = false;
     public static RobotInfo following;
+    public static MapLocation center;
+    public static MapLocation myhq;
+    static boolean toCenter = true;
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
      * It is like the main function for your robot. If this method returns, the robot dies!
@@ -67,16 +72,24 @@ public strictfp class RobotPlayer {
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
 
-        if(rc.getType() == RobotType.LAUNCHER){
-            for (RobotInfo robot: rc.senseNearbyRobots(2)){
-                if(robot.getType() == RobotType.BOOSTER){
-                    //follower = true;
-                    following = robot;
-                    break;
-                }
-            }
 
+        //explore.add(new MapLocation(rc.getMapWidth()/2,rc.getMapHeight()/2));
+        center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
+        for (RobotInfo robot: rc.senseNearbyRobots(2)){
+            if(robot.getType() == RobotType.HEADQUARTERS){
+                myhq = robot.getLocation();
+                int x = myhq.x;
+                int y = myhq.y;
+                explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()));
+                explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()-y));
+                explore.add(new MapLocation(rc.getMapWidth(),rc.getMapHeight()-y));
+                explore.add(new MapLocation(rc.getMapWidth()/2,rc.getMapHeight()/2));
+                break;
+            }
         }
+        
+
+
 
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
