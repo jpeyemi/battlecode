@@ -14,7 +14,7 @@ public class Pathing {
     static Direction currentDirection = null;
     static Path currentPath = null;
     static void bugZero(RobotController rc, MapLocation target) throws GameActionException {
-        if (rc.getLocation().equals(target)) {
+       if (rc.getLocation().equals(target)) {
             return;
         }
         if (!rc.isMovementReady()) {
@@ -50,7 +50,7 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
-        rc.setIndicatorString("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
+        // rc.setIndicatorString("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
         if (currentPath == null) {
             // System.out.println("Path has not been created");
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
@@ -60,21 +60,23 @@ public class Pathing {
             }
             rc.setIndicatorString(currentPath.path.toString());
         }
+        if (currentPath == null) {
+            bugZero(rc, target);
+            return;
+        }
         // } else if ( currentPath.path.get( currentPath.path.size() - 1 ).equals(rc.getLocation()) ) {
         //     currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
         // }  
         if (currentPath.moveOnPath()) {
             // System.out.println("Moving");
         } else {
-            if ( currentPath.path.get( currentPath.path.size() - 1 ).isWithinDistanceSquared(rc.getLocation(), 1) ) {
-                    currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
-            }  
             // System.out.println("Path Correcting");
             // currentPath = currentPath.pathCorrection();
             bugZero(rc, target);
             rc.setIndicatorString("Path correcting" + currentPath.path.toString());
             
         }
+        // bugZero(rc, target);
 
         
         // Direction d = rc.getLocation().directionTo(target);
