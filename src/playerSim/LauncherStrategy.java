@@ -39,6 +39,7 @@ public class LauncherStrategy {
         if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
+        scanIslands(rc);
         Communication.clearObsoleteEnemies(rc);
         if (enemies.length > 0) {
             for (RobotInfo enemy: enemies){
@@ -78,7 +79,7 @@ public class LauncherStrategy {
                 rc.attack(target.getLocation());
         }
         if(Communication.eheadquarterLocs[0] != null){
-            Pathing.moveTowards(rc, Communication.eheadquarterLocs[0]);
+            Pathing.moveTowards(rc, Communication.eheadquarterLocs[0]); // to be changed
             return;
         }
 
@@ -93,6 +94,12 @@ public class LauncherStrategy {
                 Communication.addEHq(enemy, rc);
                 target = enemy;
                 break;
+            }
+            if(enemy.getTeam() == rc.getTeam() ){
+                if(enemy.getType() == RobotType.AMPLIFIER && bestTarget != 6){
+                    target = enemy;
+                }
+                continue;
             }
             Communication.reportEnemy(rc, enemy.location);
             int enemyHealth = enemy.getHealth();
@@ -138,14 +145,17 @@ public class LauncherStrategy {
             }
         }
 
+
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);
-        if(target != null){
+        if(enemyLocation != null){
             MapLocation robotLocation = rc.getLocation();
-            //Pathing.moveTowards(rc, enemyLocation);
-            Direction moveDir = robotLocation.directionTo(enemyLocation);
-            if (rc.canMove(moveDir)) {
-                rc.move(moveDir);
-            }
+            Pathing.moveTowards(rc, enemyLocation);
+            rc.setIndicatorString(enemyLocation.toString());
+
+            // Direction moveDir = robotLocation.directionTo(enemyLocation);
+            // if (rc.canMove(moveDir)) {
+            //     rc.move(moveDir);
+            // }
         }
 
 

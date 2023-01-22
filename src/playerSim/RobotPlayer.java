@@ -88,7 +88,7 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     runHeadquarters(rc);  break;
+                    case HEADQUARTERS: HeadquartersStrategy.runHeadquarters(rc);  break;
                     case CARRIER: CarrierStrategy.runCarrier(rc);   break;
                     case LAUNCHER: LauncherStrategy.runLauncher(rc); break;
                     case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
@@ -124,122 +124,7 @@ public strictfp class RobotPlayer {
      * Run a single turn for a Headquarters.
      * This code is wrapped inside the infinite loop in run(), so it is called once per turn.
      */
-    static void runHeadquarters(RobotController rc) throws GameActionException {
-        // Pick a direction to build in.
-        // Direction dir = directions[rng.nextInt(directions.length)];
-        // MapLocation newLoc = rc.getLocation().add(dir);
-        if (turnCount == 1) {
-            Communication.addHeadquarter(rc);
-        } else if (turnCount == 2) {
-            Communication.updateHeadquarterInfo(rc);
-        }
-        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
-        int carrierCount = 0;
-        for (RobotInfo r : robots){
-            if(r.getType() == RobotType.CARRIER){
-                carrierCount++;
-            }
-        }
-        // RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam());
-        // if (robots.length > 10) {
-        //     // spawn in bulk
-        //     if(turnCount % 20 == 0) {
-        //         if(rc.getNumAnchors(Anchor.STANDARD) + rc.getNumAnchors(Anchor.ACCELERATING) < 5){
-        //             Anchor builtAnchor;
-        //             if (turnCount > 750 && turnCount < 1500)
-        //                 builtAnchor = Anchor.ACCELERATING;
-        //             else builtAnchor = Anchor.STANDARD;
-        //             for(int i = 0; i < 5; i++){
-        //                 if (rc.canBuildAnchor(builtAnchor)) {
-        //                     // If we can build an anchor do it!
-        //                     rc.buildAnchor(builtAnchor);
-        //                     rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     if(enemies.length > robots.length){
-        //         for( Direction dir : directions){
-        //             MapLocation newLoc = rc.getLocation().add(dir);
-        //             rc.setIndicatorString("Trying to build a carrier");
-        //             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-        //                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
-        //             }
-        //         }
-        //     } else {
-        //         if(rng.nextBoolean()){
-        //             for( Direction dir : directions){
-        //                 MapLocation newLoc = rc.getLocation().add(dir);
-        //                 rc.setIndicatorString("Trying to build a launcher");
-        //                 if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-        //                     rc.buildRobot(RobotType.LAUNCHER, newLoc);
-        //                 }
-        //             }
-        //         } else {
-        //             if(rng.nextBoolean()){
-        //                 for( Direction dir : directions){
-        //                     MapLocation newLoc = rc.getLocation().add(dir);
-        //                     rc.setIndicatorString("Trying to build a Amplifier");
-        //                     if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
-        //                         rc.buildRobot(RobotType.AMPLIFIER, newLoc);
-        //                         break;
-        //                     }
-        //                 }
-        //             }
-        //             for( Direction dir : directions){
-        //                 MapLocation newLoc = rc.getLocation().add(dir);
-        //                 rc.setIndicatorString("Trying to build a carrier");
-        //                 if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-        //                     rc.buildRobot(RobotType.CARRIER, newLoc);
-        //                 }
-        //             }
-        //         }
-        //     }
-
-        // }
-
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
-        if (turnCount == 1) {
-            Communication.addHeadquarter(rc);
-        } else if (turnCount == 2) {
-            Communication.updateHeadquarterInfo(rc);
-        }
-        
-        if (turnCount % 50 == 19){
-            rc.setIndicatorString("Trying to build a Amplifier");
-            if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
-                rc.buildRobot(RobotType.AMPLIFIER, newLoc);
-            }
-        }
-        if(carrierCount < 4){
-            if (rng.nextBoolean()) {
-                // Let's try to build a carrier.
-                rc.setIndicatorString("Trying to build a carrier");
-                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                    rc.buildRobot(RobotType.CARRIER, newLoc);
-                }
-            } else {
-                // Let's try to build a launcher.
-                rc.setIndicatorString("Trying to build a launcher");
-                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
-                }
-            }
-        }else if(rc.getNumAnchors(Anchor.STANDARD) > 1){
-            rc.setIndicatorString("Trying to build a launcher");
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            }
-        }
-        if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getResourceAmount(ResourceType.ADAMANTIUM) > 100) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
-        }
-        Communication.tryWriteMessages(rc);
-
-    }
+   
 
     static void moveRandom(RobotController rc) throws GameActionException {
         Direction dir = directions[rng.nextInt(directions.length)];

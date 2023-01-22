@@ -1,5 +1,7 @@
 package playerSim;
 
+import java.util.ArrayList;
+
 import battlecode.common.*;
 import battlecode.world.Island;
 
@@ -7,6 +9,7 @@ public class CarrierStrategy {
     
     static MapLocation hqLoc;
     static MapLocation wellLoc;
+    static ArrayList <MapLocation> wellLocs = new ArrayList<MapLocation>();
     static MapLocation islandLoc;
 
     static boolean anchorMode = false;
@@ -21,57 +24,42 @@ public class CarrierStrategy {
             Communication.updateHeadquarterInfo(rc);
         }
         if(hqLoc == null) scanHQ(rc);
-        if(wellLoc == null) scanWells(rc);
+        scanWells(rc);
+        if(wellLoc == null && wellLocs.size() > 0) wellLoc = wellLocs.get(RobotPlayer.rng.nextInt(wellLocs.size()));
         scanIslands(rc);
 
         //Transfer resource to headquarters
         depositResource(rc, ResourceType.ADAMANTIUM);
         depositResource(rc, ResourceType.MANA);
+        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)) {
+            rc.takeAnchor(hqLoc, Anchor.STANDARD);
+            anchorMode = true;
+        }
 
-        if(islandLoc != null){
-            if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)) {
-                rc.takeAnchor(hqLoc, Anchor.STANDARD);
-                anchorMode = true;
-            }
-
-            if(rc.canTakeAnchor(hqLoc, Anchor.ACCELERATING)) {
-                rc.takeAnchor(hqLoc, Anchor.ACCELERATING);
-                anchorMode = true;
-            }
+        if(rc.canTakeAnchor(hqLoc, Anchor.ACCELERATING)) {
+            rc.takeAnchor(hqLoc, Anchor.ACCELERATING);
+            anchorMode = true;
         }
 
         //Collect from well if close and inventory not full
         if(wellLoc != null && rc.canCollectResource(wellLoc, -1)) rc.collectResource(wellLoc, -1);
 
         
-        if(islandLoc == null) {
-            for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
-                MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-                float lowestDistance = 100;
-                if (islandNearestLoc != null) {
-                    float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-                    if(Communication.readTeamHoldingIsland(rc, i) == Team.NEUTRAL){
-                        islandLoc = islandNearestLoc;
-                        lowestDistance = dist;
+        //no resources -> look for well
+        if(anchorMode) {
+            if(islandLoc == null){ 
+                for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
+                    MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                    float lowestDistance = 10000;
+                    if (islandNearestLoc != null) {
+                        float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+                        if(Communication.readTeamHoldingIsland(rc, i) == Team.NEUTRAL && dist < lowestDistance){
+                            islandLoc = islandNearestLoc;
+                            lowestDistance = dist;
+                        }
                     }
                 }
             }
-        }
-        //no resources -> look for well
-        if(anchorMode) {
-            // if(islandLoc == null) {
-            //     for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
-            //         MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-            //         float lowestDistance = 100;
-            //         if (islandNearestLoc != null) {
-            //             float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-            //             if(Communication.readTeamHoldingIsland(rc, i) == Team.NEUTRAL){
-            //                 islandLoc = islandNearestLoc;
-            //                 lowestDistance = dist;
-            //             }
-            //         }
-            //     }
-            // }
             if(islandLoc != null){
                 Pathing.moveTowards(rc, islandLoc); 
             }
@@ -80,11 +68,18 @@ public class CarrierStrategy {
             if(rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == Team.NEUTRAL) {
                 rc.placeAnchor();
                 anchorMode = false;
+                islandLoc = null;
+            }else if(rc.senseIsland(rc.getLocation()) != -1 && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) != Team.NEUTRAL){
+                if(rc.canAttack(rc.getLocation().add(RobotPlayer.directions[0]))){
+                    rc.attack(rc.getLocation().add(RobotPlayer.directions[0]));
+                    anchorMode = false;
+                }
+                
             }
-            Direction moveDir = rc.getLocation().directionTo(Communication.headquarterLocs[0]).opposite();
-            if (rc.canMove(moveDir)) {
-                rc.move(moveDir);
-            }
+            // Direction moveDir = rc.getLocation().directionTo(Communication.headquarterLocs[0]).opposite();
+            // if (rc.canMove(moveDir)) {
+            //     rc.move(moveDir);
+            // }
         }
         else {
             int total = getTotalResources(rc);
@@ -98,6 +93,12 @@ public class CarrierStrategy {
                 Pathing.moveTowards(rc, hqLoc);
             }
         }
+
+        // Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+        // if (rc.canMove(dir)) {
+        //     rc.move(dir);
+        // }
+
         Communication.tryWriteMessages(rc);
     }
 
@@ -126,13 +127,22 @@ public class CarrierStrategy {
 
     static void scanWells(RobotController rc) throws GameActionException {
         WellInfo[] wells = rc.senseNearbyWells();
-        if(wells.length > 0) wellLoc = wells[RobotPlayer.rng.nextInt(wells.length)].getMapLocation();
+        if(wells.length > 0) {
+            for(WellInfo well : wells){
+                if(!wellLocs.contains(well.getMapLocation())){
+                    wellLocs.add(well.getMapLocation());
+                }
+            }
+        };
     }
 
     static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
         int amount = rc.getResourceAmount(type);
         if(amount > 0) {
-            if(rc.canTransferResource(hqLoc, type, amount)) rc.transferResource(hqLoc, type, amount);
+            if(rc.canTransferResource(hqLoc, type, amount)) {
+                rc.transferResource(hqLoc, type, amount);
+                wellLoc = null;
+            }
         }
     }
 
