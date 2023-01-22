@@ -50,7 +50,7 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
-        if (currentPath != null && currentPath.path.get(currentPath.path.size() - 1) != target) {
+        if (currentPath != null && !currentPath.path.get(currentPath.path.size() - 1).equals(target)) {
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
         }
         // rc.setIndicatorString("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));

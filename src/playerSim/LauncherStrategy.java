@@ -234,16 +234,13 @@ public class LauncherStrategy {
 
         if(rc.getLocation().distanceSquaredTo(RobotPlayer.center) < 6){
             RobotPlayer.toCenter = false;
-        }else{
-            if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 6){
-                if(RobotPlayer.toCenter = false){
-                    RobotPlayer.toCenter =true;
-                    if(RobotPlayer.explore.size()>0){
-                        RobotPlayer.center = RobotPlayer.explore.get(0);
-                        RobotPlayer.explore.remove(0);
-                    }
+        }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 6){
+            if(RobotPlayer.toCenter == false){
+                RobotPlayer.toCenter =true;
+                if(RobotPlayer.explore.size()>0){
+                    //RobotPlayer.center = RobotPlayer.explore.get(0);
+                    RobotPlayer.explore.remove(0);
                 }
-               
             }
         }
 
