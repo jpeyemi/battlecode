@@ -238,7 +238,10 @@ public class LauncherStrategy {
             toCenter = false;
         }else{
             if(Communication.headquarterLocs[0] != null && rc.getLocation().distanceSquaredTo(Communication.headquarterLocs[0]) < 6){
-                toCenter =true;
+                if(toCenter = false){
+                    toCenter =true;
+                }
+               
             }
         }
 
