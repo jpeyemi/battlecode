@@ -22,7 +22,7 @@ class Communication {
 
     private static final int OUTDATED_TURNS_AMOUNT = 100;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
-    private static final int MAX_SQUADS = 2;
+    private static final int MAX_SQUADS = 3;
     // Maybe you want to change this based on exact amounts which you can get on turn 1
     static final int STARTING_ISLAND_IDX = 2*GameConstants.MAX_STARTING_HEADQUARTERS + 1;
     private static final int STARTING_LEADER_INDEX = GameConstants.MAX_NUMBER_ISLANDS + STARTING_ISLAND_IDX;
