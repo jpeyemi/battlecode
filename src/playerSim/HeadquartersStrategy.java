@@ -24,7 +24,9 @@ class HeadquartersStrategy{
         }
         Communication.checkSquad(rc);
         buildStrat(rc);
-        anchorStrat(rc);
+        if(RobotPlayer.turnCount > 100){
+            anchorStrat(rc);
+        }
         Communication.tryWriteMessages(rc);
 
     }
@@ -47,19 +49,41 @@ class HeadquartersStrategy{
             }
         }
         if(carrierCount < 10){
-            if (RobotPlayer.rng.nextBoolean()) {
-                // Let's try to build a carrier.
-                rc.setIndicatorString("Trying to build a carrier");
+            boolean buildAll = true;
+            while(buildAll){
                 if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                     rc.buildRobot(RobotType.CARRIER, newLoc);
-                }
-            } else {
-                // Let's try to build a launcher.
-                rc.setIndicatorString("Trying to build a launcher");
-                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                }else{
+                    buildAll = false;
                 }
             }
+            buildAll = true;
+            while(buildAll){
+                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                }else{
+                    buildAll = false;
+                }
+            }
+        }
+        else if(carrierCount > 10){
+            boolean buildAll = true;
+            while(buildAll && rc.getResourceAmount(ResourceType.MANA)> 60){
+                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                }else{
+                    buildAll = false;
+                }
+            }
+            buildAll = true;
+            while(buildAll  && rc.getResourceAmount(ResourceType.MANA)> 60){
+                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+                    rc.buildRobot(RobotType.CARRIER, newLoc);
+                }else{
+                    buildAll = false;
+                }
+            }
+            
         }else {
             rc.setIndicatorString("Trying to build a launcher");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {

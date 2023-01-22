@@ -25,9 +25,12 @@ public class LauncherStrategy {
         priority.put(RobotType.AMPLIFIER, 3);
     }
     static MapLocation islandLoc;
+    static boolean toCenter = true;
+    
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
+        MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -39,6 +42,18 @@ public class LauncherStrategy {
         if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
+
+        for(MapLocation ehq : Communication.eheadquarterLocs){
+            if(ehq != null && rc.getLocation().distanceSquaredTo(ehq) < RobotType.HEADQUARTERS.actionRadiusSquared){
+                Direction moveDir = rc.getLocation().directionTo(ehq).opposite();
+                if (rc.canMove(moveDir)) {
+                    rc.move(moveDir);
+                }
+                return;
+            }
+        }
+
+        avoidHqKillRadius(rc);
         scanIslands(rc);
         RobotPlayer.scan(rc);
         RobotPlayer.squad(rc);
@@ -80,6 +95,7 @@ public class LauncherStrategy {
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
         }
+
         RobotPlayer.moveSquad(rc);
         // if(Communication.eheadquarterLocs[0] != null){
         //     Pathing.moveTowards(rc, Communication.eheadquarterLocs[0]); // to be changed
@@ -141,7 +157,12 @@ public class LauncherStrategy {
         if(target != null){
             MapLocation enemyLocation = target.getLocation();
             if(target.getType() == RobotType.HEADQUARTERS){
-                enemyLocation = rc.getLocation();
+                //enemyLocation = rc.getLocation();
+                Direction moveDir = rc.getLocation().directionTo(enemyLocation).opposite();
+                if (rc.canMove(moveDir)) {
+                    rc.move(moveDir);
+                }
+                return;
             }
             MapLocation robotLocation = rc.getLocation();
             //Pathing.moveTowards(rc, enemyLocation);
@@ -151,7 +172,6 @@ public class LauncherStrategy {
             }
             Clock.yield();
         }
-
 
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);
         if(enemyLocation != null){
@@ -214,10 +234,23 @@ public class LauncherStrategy {
         // }
 
 
-        Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+        if(rc.getLocation().distanceSquaredTo(center) < 6){
+            toCenter = false;
+        }else{
+            if(Communication.headquarterLocs[0] != null && rc.getLocation().distanceSquaredTo(Communication.headquarterLocs[0]) < 6){
+                toCenter =true;
+            }
         }
+
+        if(toCenter){
+            Pathing.moveTowards(rc, center);
+        }else{
+            Pathing.moveTowards(rc, Communication.headquarterLocs[0]);
+        }
+        // Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+        // if (rc.canMove(dir)) {
+        //     rc.move(dir);
+        // }
 
 
         Communication.tryWriteMessages(rc);
@@ -233,6 +266,18 @@ public class LauncherStrategy {
                 }
             }
             Communication.updateIslandInfo(rc, id);
+        }
+    }
+
+    static void avoidHqKillRadius(RobotController rc) throws GameActionException{
+        for(MapLocation ehq : Communication.eheadquarterLocs){
+            if(ehq != null && rc.getLocation().distanceSquaredTo(ehq) < RobotType.HEADQUARTERS.actionRadiusSquared){
+                Direction moveDir = rc.getLocation().directionTo(ehq).opposite();
+                if (rc.canMove(moveDir)) {
+                    rc.move(moveDir);
+                }
+                Clock.yield();
+            }
         }
     }
 }
