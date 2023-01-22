@@ -99,7 +99,7 @@ public class CarrierStrategy {
         // if (rc.canMove(dir)) {
         //     rc.move(dir);
         // }
-
+        
         Communication.tryWriteMessages(rc);
     }
 

@@ -53,13 +53,16 @@ public class Pathing {
         //System.out.println("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
         if (currentPath == null) {
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc), rc);
+            if (currentPath == null) {
+                rc.setIndicatorString("THERE'S NO PATH!");
+                // bugZero(rc, target);
         }
-        if (currentPath == null) {
-            bugZero(rc, target);
+        
         } else if (currentPath.moveOnPath()) {
             return;
         } else {
-            bugZero(rc, target);
+            // System.out.println("OH NO");
+            currentPath = currentPath.pathCorrection();
         }
 
         

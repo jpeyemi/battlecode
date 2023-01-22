@@ -17,7 +17,7 @@ public class Pathing {
         if (rc.getLocation().equals(target)) {
             return;
         }
-        if (!rc.isActionReady()) {
+        if (!rc.isMovementReady()) {
             return;
         }
         Direction d = rc.getLocation().directionTo(target);
@@ -50,16 +50,30 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
-        // System.out.println("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
+        rc.setIndicatorString("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
         if (currentPath == null) {
-            currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc), rc);
+            // System.out.println("Path has not been created");
+            currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
+            if (currentPath == null) {
+                rc.setIndicatorString("THERE'S NO PATH!");
+                // bugZero(rc, target);
+            }
+            rc.setIndicatorString(currentPath.path.toString());
         }
-        if (currentPath == null) {
-            bugZero(rc, target);
-        } else if (currentPath.moveOnPath()) {
-            return;
+        // } else if ( currentPath.path.get( currentPath.path.size() - 1 ).equals(rc.getLocation()) ) {
+        //     currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
+        // }  
+        if (currentPath.moveOnPath()) {
+            // System.out.println("Moving");
         } else {
+            if ( currentPath.path.get( currentPath.path.size() - 1 ).isWithinDistanceSquared(rc.getLocation(), 1) ) {
+                    currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
+            }  
+            // System.out.println("Path Correcting");
+            // currentPath = currentPath.pathCorrection();
             bugZero(rc, target);
+            rc.setIndicatorString("Path correcting" + currentPath.path.toString());
+            
         }
 
         
@@ -127,13 +141,20 @@ public class Pathing {
         public String toString() {
             return "" + loc;
         }
-        public boolean equals(Node o) {
-            return o.loc.equals(this.loc);
+        @Override
+        public boolean equals(Object o) {
+            Node other = (Node) o;
+            if (other.loc.equals(this.loc)) return true;
+            return false;
+        }
+        @Override
+        public int hashCode() {
+            return this.loc.hashCode();
         }
     }
     
-    static ArrayList<MapLocation> pathing(MapLocation start, MapLocation end, RobotController robot) throws GameActionException{
-        return aStar(new Node(start), new Node(end), robot);
+    static ArrayList<MapLocation> pathing(MapLocation start, MapLocation end, RobotController robot, HashMap<Node, Integer> visited) throws GameActionException{
+        return aStar(new Node(start), new Node(end), robot, visited);
     }
 
     static ArrayList<Node> getNeighbors(Node node, RobotController rc) throws GameActionException {
@@ -153,10 +174,10 @@ public class Pathing {
         MapLocation locB = b.loc;
         return locA.distanceSquaredTo(locB);
     }
-    static ArrayList<MapLocation> aStar(Node start, Node end, RobotController rc) throws GameActionException{
+    static ArrayList<MapLocation> aStar(Node start, Node end, RobotController rc, HashMap<Node, Integer> visited) throws GameActionException{
         PriorityQueue<Node> openList = new PriorityQueue<>();
-        HashMap<Node, Integer> closedList = new HashMap<>();
-        Map<Node, Node> parent = new HashMap<>();
+        HashMap<Node, Integer> closedList = visited;
+        HashMap<Node, Node> parent = new HashMap<>();
         parent.put(start, null);
         
         start.setG(0);
@@ -168,7 +189,8 @@ public class Pathing {
             Node currentNode = openList.poll();
 
             if (currentNode.equals(end)) {
-                // System.out.println("Goal state reached!");
+                // System.out.println(start.loc.toString() + end.loc.toString());
+                
                 return reconstructPath(parent, end);
             }
             // Add the current node to the closed list
@@ -202,17 +224,20 @@ public class Pathing {
         // System.out.print(parent);
         return null;
     }
-    static ArrayList<MapLocation> reconstructPath(Map<Node, Node> cameFrom, Node end) {
+    static ArrayList<MapLocation> reconstructPath(HashMap<Node, Node> cameFrom, Node end) {
         ArrayList<MapLocation> path = new ArrayList<>();
         Node current = end;
-
+        // System.out.println(cameFrom.toString() + current.loc.toString());
+        // int i = 0;
         while (current != null) {
             path.add(current.loc);
+            // System.out.println(cameFrom.containsKey(current));
             current = cameFrom.get(current);
+            // i++;
         }
 
         Collections.reverse(path);
-        // System.out.println(path);
+        // System.out.println(i);
         return path;
     }
 
