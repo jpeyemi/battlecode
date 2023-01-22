@@ -50,6 +50,9 @@ public class Pathing {
         if (!rc.isActionReady()) {
             return;
         }
+        if (currentPath != null && currentPath.path.get(currentPath.path.size() - 1) != target) {
+            currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
+        }
         // rc.setIndicatorString("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
         if (currentPath == null) {
             // System.out.println("Path has not been created");
