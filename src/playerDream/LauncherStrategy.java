@@ -175,27 +175,27 @@ public class LauncherStrategy {
             }
             Clock.yield();
         } else {
-            RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
-            int lowestID = rc.getID();
-            MapLocation leaderPos = null;
-            for (RobotInfo ally : allies){
-                if (ally.getType() != RobotType.LAUNCHER)
-                    continue;
-                if (ally.getID() < lowestID){
-                    lowestID = ally.getID();
-                    leaderPos = ally.getLocation();
-                }
-            }
-            if (leaderPos != null){
-                Pathing.moveTowards(rc, leaderPos);
-                rc.setIndicatorString("Following " + lowestID);
-                return;
-            }
-            else{
-                //MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
-                //Pathing.moveTowards(rc, RobotPlayer.center);
-                rc.setIndicatorString("I'm the leader!");
-            }
+            // RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
+            // int lowestID = rc.getID();
+            // MapLocation leaderPos = null;
+            // for (RobotInfo ally : allies){
+            //     if (ally.getType() != RobotType.LAUNCHER)
+            //         continue;
+            //     if (ally.getID() < lowestID){
+            //         lowestID = ally.getID();
+            //         leaderPos = ally.getLocation();
+            //     }
+            // }
+            // if (leaderPos != null){
+            //     Pathing.moveTowards(rc, leaderPos);
+            //     rc.setIndicatorString("Following " + lowestID);
+            //     return;
+            // }
+            // else{
+            //     //MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
+            //     //Pathing.moveTowards(rc, RobotPlayer.center);
+            //     rc.setIndicatorString("I'm the leader!");
+            // }
         }
 
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);

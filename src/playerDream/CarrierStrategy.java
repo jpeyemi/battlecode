@@ -130,7 +130,7 @@ public class CarrierStrategy {
             int total = getTotalResources(rc);
             if(total == 0) {
                 //move towards well or search for well
-                if(wellLoc == null) RobotPlayer.moveRandom(rc);
+                if(wellLoc == null) Pathing.moveTowards(rc, RobotPlayer.center);
                 else if(!rc.getLocation().isAdjacentTo(wellLoc)) Pathing.moveTowards(rc, wellLoc);
             }
             if(total == GameConstants.CARRIER_CAPACITY) {

@@ -23,7 +23,7 @@ class HeadquartersStrategy{
             Communication.updateHeadquarterInfo(rc);
         }
         Communication.checkSquad(rc);
-        if(RobotPlayer.turnCount > 0){
+        if(RobotPlayer.turnCount > 50){
             anchorStrat(rc);
         }
         buildStrat(rc);
@@ -58,14 +58,16 @@ class HeadquartersStrategy{
                     buildAll = false;
                 }
             }
-            // buildAll = true;
-            // while(buildAll){
-            //     if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-            //         rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            //     }else{
-            //         buildAll = false;
-            //     }
-            // }
+            if(RobotPlayer.turnCount < 10){
+                buildAll = true;
+                while(buildAll){
+                    if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                        rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                    }else{
+                        buildAll = false;
+                    }
+                }
+            }
         }
         else if(carrierCount > 10){
 
@@ -92,7 +94,7 @@ class HeadquartersStrategy{
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
             }
         }
-        if (rc.getResourceAmount(ResourceType.MANA) < 5 * RobotType.LAUNCHER.buildCostMana)
+        if (rc.getResourceAmount(ResourceType.MANA) < 1 * RobotType.LAUNCHER.buildCostMana)
             return;
         int attempts = 0;
         int numPlaced = 0;
