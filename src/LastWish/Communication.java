@@ -1,4 +1,4 @@
-package playerDream;
+package LastWish;
 
 import java.util.List;
 
@@ -23,12 +23,10 @@ class Communication {
     private static final int OUTDATED_TURNS_AMOUNT = 50;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
     private static final int MAX_SQUADS = 3;
-    private static final int MAX_WELLS = 6;
     // Maybe you want to change this based on exact amounts which you can get on turn 1
     static final int STARTING_ISLAND_IDX = 2*GameConstants.MAX_STARTING_HEADQUARTERS + 1;
     private static final int STARTING_LEADER_INDEX = GameConstants.MAX_NUMBER_ISLANDS + STARTING_ISLAND_IDX;
-    private static final int STARTING_WELL_INDEX = GameConstants.MAX_NUMBER_ISLANDS + STARTING_ISLAND_IDX;
-    private static final int STARTING_ENEMY_IDX = STARTING_LEADER_INDEX + MAX_WELLS;
+    private static final int STARTING_ENEMY_IDX = STARTING_LEADER_INDEX + 2*MAX_SQUADS;
 
     private static final int TOTAL_BITS = 16;
     private static final int MAPLOC_BITS = 12;
@@ -77,40 +75,6 @@ class Communication {
             }
         }
     }
-    static void addWell(WellInfo w, RobotController rc) throws GameActionException{
-        MapLocation loc = w.getMapLocation();
-        for (int i = STARTING_WELL_INDEX; i < MAX_WELLS + STARTING_WELL_INDEX; i++) {
-            int iloc = locationToInt(rc, loc);
-            if (rc.readSharedArray(i) == iloc) break;
-            if (rc.readSharedArray(i) == 0) {
-                Message msg = new Message(i, locationToInt(rc, loc), RobotPlayer.turnCount);
-                messagesQueue.add(msg);
-                break;
-            }
-        }
-    }
-
-    static MapLocation getNearestWell(RobotController rc) throws GameActionException {
-        MapLocation answer = null;
-        for (int i = STARTING_WELL_INDEX; i < STARTING_WELL_INDEX + MAX_WELLS; i++) {
-            final int value;
-            if(rc.readSharedArray(i) == 0 ){
-                break;
-            }
-            try {
-                value = rc.readSharedArray(i);
-                final MapLocation m = intToLocation(rc, value);
-                if (m != null && (answer == null || rc.getLocation().distanceSquaredTo(m) < rc.getLocation().distanceSquaredTo(answer))) {
-                    answer = m;
-                }
-            } catch (GameActionException e) {
-                continue;
-            }
-        }
-        return answer;
-    }
-
-
 
     static void readEHq(RobotController rc) throws GameActionException{
         for (int i = GameConstants.MAX_STARTING_HEADQUARTERS+1; i < 2*GameConstants.MAX_STARTING_HEADQUARTERS+1; i++) {

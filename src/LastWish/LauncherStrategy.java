@@ -1,4 +1,4 @@
-package playerDream;
+package LastWish;
 
 import java.util.HashMap;
 
@@ -53,7 +53,6 @@ public class LauncherStrategy {
 
         avoidHqKillRadius(rc);
         scanIslands(rc);
-        scanWells(rc);
         // RobotPlayer.scan(rc);
         // RobotPlayer.squad(rc);
         // RobotPlayer.scan(rc);
@@ -317,16 +316,5 @@ public class LauncherStrategy {
            if(robot.getType() == RobotType.AMPLIFIER) return true;
         }
         return false;
-    }
-
-    static void scanWells(RobotController rc) throws GameActionException {
-        WellInfo[] wells = rc.senseNearbyWells();
-        if(wells.length > 0) {
-            for(WellInfo well: wells){
-                if(well.getResourceType() == ResourceType.MANA){
-                    Communication.addWell(well, rc);
-                }
-            }
-        }
     }
 }

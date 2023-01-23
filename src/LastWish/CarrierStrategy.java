@@ -1,4 +1,4 @@
-package playerDream;
+package LastWish;
 
 import java.util.ArrayList;
 
@@ -164,19 +164,12 @@ public class CarrierStrategy {
                 if(!wellLocs.contains(well.getMapLocation())){
                     wellLocs.add(well.getMapLocation());
                     if(well.getResourceType() == ResourceType.MANA){
-                        Communication.addWell(well, rc);
                         wellLocs.add(well.getMapLocation());
                         wellLocs.add(well.getMapLocation());
                     }
                 }
             }
-        }
-        MapLocation cwell = Communication.getNearestWell(rc);
-        if(cwell != null){
-            wellLocs.add(cwell);
-            wellLocs.add(cwell);
-            wellLocs.add(cwell);
-        }
+        };
     }
 
     static void depositResource(RobotController rc, ResourceType type) throws GameActionException {
