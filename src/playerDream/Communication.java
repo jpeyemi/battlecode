@@ -20,7 +20,7 @@ class Message {
 
 class Communication {
 
-    private static final int OUTDATED_TURNS_AMOUNT = 50;
+    private static final int OUTDATED_TURNS_AMOUNT = 30;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
     private static final int MAX_SQUADS = 3;
     private static final int MAX_WELLS = 6;
