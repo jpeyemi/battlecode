@@ -1,4 +1,4 @@
-package playerSim;
+package playerDream;
 
 import java.util.HashMap;
 
@@ -95,8 +95,8 @@ public class LauncherStrategy {
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
         }
-
-        RobotPlayer.moveSquad(rc);
+        Communication.tryWriteMessages(rc);
+        // RobotPlayer.moveSquad(rc);
         //if(!RobotPlayer.leader) return;
         // if(Communication.eheadquarterLocs[0] != null){
         //     Pathing.moveTowards(rc, Communication.eheadquarterLocs[0]); // to be changed
@@ -154,6 +154,8 @@ public class LauncherStrategy {
         	// 	}
         	// }
         }
+
+        Communication.tryWriteMessages(rc);
 
         if(target != null){
             MapLocation enemyLocation = target.getLocation();
@@ -237,7 +239,7 @@ public class LauncherStrategy {
 
         if(rc.getLocation().distanceSquaredTo(RobotPlayer.center) < 6){
             RobotPlayer.toCenter = false;
-        }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 6){
+        }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
             if(RobotPlayer.toCenter == false){
                 RobotPlayer.toCenter =true;
                 if(RobotPlayer.explore.size()>0){
@@ -258,18 +260,17 @@ public class LauncherStrategy {
         // }
 
 
-        Communication.tryWriteMessages(rc);
+        
     }
     static void scanIslands(RobotController rc) throws GameActionException {
         int[] ids = rc.senseNearbyIslands();
         for(int id : ids) {
-            if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
-                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
-                if(locs.length > 0) {
-                    islandLoc = locs[0];
-                    break;
-                }
-            }
+            // if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
+            //     MapLocation[] locs = rc.senseNearbyIslandLocations(id);
+            //     if(locs.length > 0) {
+            //         islandLoc = locs[0];
+            //     }
+            // }
             Communication.updateIslandInfo(rc, id);
         }
     }

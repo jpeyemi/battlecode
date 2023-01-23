@@ -10,9 +10,10 @@ import java.util.Map;
 
 public class Pathing {
     // Basic bug nav - Bug 0
-
+    static MapLocation lastPos = null;
     static Direction currentDirection = null;
     static Path currentPath = null;
+    static int maxDist = 16;
     static void bugZero(RobotController rc, MapLocation target) throws GameActionException {
        if (rc.getLocation().equals(target)) {
             return;
@@ -43,25 +44,65 @@ public class Pathing {
             }
         }
     }
-    static void moveTowards(RobotController rc, MapLocation target) throws GameActionException {
+    static void bugDream(RobotController rc, MapLocation target) throws GameActionException {
+        if (rc.getLocation().distanceSquaredTo(target) < 2) {
+             return;
+        }
+        if (!rc.isMovementReady()) {
+             return;
+        }
+        Direction d = rc.getLocation().directionTo(target);
+        if (rc.canMove(d) && !rc.getLocation().equals(lastPos)) {
+            lastPos = rc.getLocation();
+            rc.move(d);
+            currentDirection = null; // there is no obstacle we're going around
+        } else {
+            // Going around some obstacle: can't move towards d because there's an obstacle there
+            // Idea: keep the obstacle on our right hand
+
+            if (currentDirection == null) {
+                currentDirection = d;
+            }
+            currentDirection = d.rotateRight();
+            // Try to move in a way that keeps the obstacle on our right
+            for (int i = 0; i < 8; i++) {
+                if (rc.canMove(currentDirection)) {
+                    lastPos = rc.getLocation();
+                    rc.move(currentDirection);
+                    currentDirection = currentDirection.rotateRight();
+                    break;
+                } else {
+                    currentDirection = currentDirection.rotateLeft();
+                }
+            }
+        }
+    }
+    static void moveTowards(RobotController rc, MapLocation target) throws GameActionException{
+        bugDream(rc, target);
+    }
+
+
+    static void moveTowards(RobotController rc, MapLocation target, int i) throws GameActionException {
         if (rc.getLocation().equals(target)) {
             return;
         }
         if (!rc.isActionReady()) {
             return;
         }
-        if (currentPath != null && !currentPath.path.get(currentPath.path.size() - 1).equals(target)) {
+        if (currentPath != null && (currentPath.path != null && !currentPath.path.get(currentPath.path.size() - 1).equals(target))) {
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
-        }
-        // rc.setIndicatorString("" + rc.getLocation()+ ", " +  closetToTarget(rc, target));
-        if (currentPath == null) {
+            if(currentPath.path == null) {
+                currentPath = null;
+            } 
+        } else if (currentPath == null) {
             // System.out.println("Path has not been created");
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
-            if (currentPath == null) {
+            if (currentPath.path == null) {
+                currentPath = null;
                 rc.setIndicatorString("THERE'S NO PATH!");
                 // bugZero(rc, target);
             }
-            rc.setIndicatorString(currentPath.path.toString());
+            //rc.setIndicatorString(currentPath.path.toString());
         }
         if (currentPath == null) {
             bugZero(rc, target);
@@ -166,7 +207,7 @@ public class Pathing {
         ArrayList<Node> neighbors = new ArrayList<>();
         for (Direction dir : RobotPlayer.directions) {
             MapLocation newLoc = node.loc.add(dir);
-            if (rc.canSenseLocation(newLoc) && rc.sensePassability(newLoc)) {
+            if (rc.canSenseLocation(newLoc) && rc.sensePassability(newLoc) && newLoc.distanceSquaredTo(rc.getLocation()) < maxDist) {
                 // Will add additional conditions ex: currents, clouds, etc.
                 neighbors.add(new Node(newLoc));
             }
@@ -253,7 +294,7 @@ public class Pathing {
         // int radius = rc.getType().visionRadiusSquared;
         Direction dir = rc.getLocation().directionTo(target);
         MapLocation current = rc.getLocation();
-        while (rc.canSenseLocation(current)) {
+        while (rc.canSenseLocation(current) && current.distanceSquaredTo(rc.getLocation()) < maxDist) {
             current = current.add(dir);
         }
         return current.add(dir.opposite());

@@ -1,4 +1,4 @@
-package playerSim;
+package playerDream;
 
 import battlecode.common.*;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 class HeadquartersStrategy{
     static boolean anchorTime = true;
     static int anchorCooldown = 0;
-    static int anchorMaxCooldown = 100;
+    static int anchorMaxCooldown = 20;
     static int openIsland = -1;
 
     static void runHeadquarters(RobotController rc) throws GameActionException {
@@ -23,10 +23,10 @@ class HeadquartersStrategy{
             Communication.updateHeadquarterInfo(rc);
         }
         Communication.checkSquad(rc);
-        buildStrat(rc);
-        if(RobotPlayer.turnCount > 100){
+        if(RobotPlayer.turnCount > 0){
             anchorStrat(rc);
         }
+        buildStrat(rc);
         Communication.tryWriteMessages(rc);
 
     }
@@ -117,7 +117,7 @@ class HeadquartersStrategy{
             if(anchorCooldown == 0) anchorTime = true;
         }
 
-        int isl = isIsland(rc);
+        //int isl = isIsland(rc);
 
         if (rc.canBuildAnchor(Anchor.STANDARD) && anchorTime) {
             // If we can build an anchor do it!
@@ -125,7 +125,7 @@ class HeadquartersStrategy{
             anchorCooldown = anchorMaxCooldown;
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
-            openIsland = isl;
+            //openIsland = isl;
         }
         // if(openIsland != isl){
         //     if (rc.canBuildAnchor(Anchor.STANDARD) && anchorTime) {

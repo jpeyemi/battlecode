@@ -1,4 +1,4 @@
-package playerSim;
+package playerDream;
 
 import battlecode.common.*;
 
@@ -28,6 +28,7 @@ public class AmplifierStrategy {
 
 
         if(RobotPlayer.following != null && rc.canSenseRobot(RobotPlayer.following.getID())){
+            Pathing.moveTowards(rc, rc.senseRobot(RobotPlayer.following.getID()).getLocation());
             Direction moveDir = rc.getLocation().directionTo(RobotPlayer.following.getLocation());
                 if (rc.canMove(moveDir)) {
                     rc.move(moveDir);

@@ -1,4 +1,4 @@
-package playerSim;
+package playerDream;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ class Message {
 
 class Communication {
 
-    private static final int OUTDATED_TURNS_AMOUNT = 100;
+    private static final int OUTDATED_TURNS_AMOUNT = 50;
     private static final int AREA_RADIUS = RobotType.CARRIER.visionRadiusSquared;
     private static final int MAX_SQUADS = 3;
     // Maybe you want to change this based on exact amounts which you can get on turn 1
@@ -101,7 +101,7 @@ class Communication {
         // Can always write (0, 0), so just checks are we in range to write
         if (rc.canWriteSharedArray(0, 0)) {
             while (messagesQueue.size() > 0 ) {
-                Message msg = messagesQueue.remove(0); // Take from front or back?
+                Message msg = messagesQueue.remove(0);
                 if (rc.canWriteSharedArray(msg.idx, msg.value)) {
                     try{
                         rc.writeSharedArray(msg.idx, msg.value);
