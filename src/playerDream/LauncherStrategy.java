@@ -115,12 +115,12 @@ public class LauncherStrategy {
                 target = enemy;
                 break;
             }
-            if(enemy.getTeam() == rc.getTeam() ){
-                if(enemy.getType() == RobotType.AMPLIFIER && bestTarget != 6){
-                    target = enemy;
-                }
-                continue;
-            }
+            // if(enemy.getTeam() == rc.getTeam() ){
+            //     if(enemy.getType() == RobotType.AMPLIFIER && bestTarget != 6){
+            //         target = enemy;
+            //     }
+            //     continue;
+            // }
             Communication.reportEnemy(rc, enemy.location);
             int enemyHealth = enemy.getHealth();
             int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
@@ -174,6 +174,28 @@ public class LauncherStrategy {
                 rc.move(moveDir);
             }
             Clock.yield();
+        } else {
+            RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
+            int lowestID = rc.getID();
+            MapLocation leaderPos = null;
+            for (RobotInfo ally : allies){
+                if (ally.getType() != RobotType.LAUNCHER)
+                    continue;
+                if (ally.getID() < lowestID){
+                    lowestID = ally.getID();
+                    leaderPos = ally.getLocation();
+                }
+            }
+            if (leaderPos != null){
+                Pathing.moveTowards(rc, leaderPos);
+                rc.setIndicatorString("Following " + lowestID);
+                return;
+            }
+            else{
+                //MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
+                //Pathing.moveTowards(rc, RobotPlayer.center);
+                rc.setIndicatorString("I'm the leader!");
+            }
         }
 
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);
@@ -189,37 +211,38 @@ public class LauncherStrategy {
         }
 
 
-        // if(islandLoc == null) {
-        //     for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
-        //         MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-        //         double farDistance = 1.0;
-        //         if (islandNearestLoc != null) {
-        //             float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-        //             //if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
-        //             if(rc.getLocation() != islandNearestLoc && dist > farDistance) {
-        //                 islandLoc = islandNearestLoc;
-        //                 farDistance = dist;
-        //             }
-        //         }
-        //     }
-        // }
-        // if(islandLoc == null) {
-        //     scanIslands(rc);
-        // }
-        // if(islandLoc != null){
+        if(islandLoc == null) {
+            for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
+                MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                double farDistance = 1.0;
+                if (islandNearestLoc != null) {
+                    float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+                    if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
+                        if(rc.getLocation() != islandNearestLoc && dist > farDistance) {
+                            islandLoc = islandNearestLoc;
+                            farDistance = dist;
+                        }
+                    }
+                }
+            }
+        }
+        if(islandLoc == null) {
+            scanIslands(rc);
+        }
+        if(islandLoc != null){
 
-        //     MapLocation robotLocation = rc.getLocation();
-        //     //Pathing.moveTowards(rc, enemyLocation);
-        //     // Direction moveDir = robotLocation.directionTo(islandLoc);
-        //     // if (rc.canMove(moveDir)) {
-        //     //     rc.move(moveDir);
-        //     // }
+            MapLocation robotLocation = rc.getLocation();
+            //Pathing.moveTowards(rc, enemyLocation);
+            // Direction moveDir = robotLocation.directionTo(islandLoc);
+            // if (rc.canMove(moveDir)) {
+            //     rc.move(moveDir);
+            // }
 
-        //     Pathing.moveTowards(rc, islandLoc);
-        //     if(rc.getLocation() == islandLoc || rc.canSenseRobotAtLocation(islandLoc)){
-        //         islandLoc = null; //expesive potenially
-        //     } 
-        // }
+            Pathing.moveTowards(rc, islandLoc);
+            if(rc.getLocation() == islandLoc || rc.canSenseRobotAtLocation(islandLoc)){
+                islandLoc = null; //expesive potenially
+            } 
+        }
 
 
         // WellInfo[] wells = rc.senseNearbyWells();
@@ -251,7 +274,7 @@ public class LauncherStrategy {
 
         if(RobotPlayer.toCenter){
             Pathing.moveTowards(rc, RobotPlayer.center);
-        }else{
+        }else if(!scanAmp(rc)){
             Pathing.moveTowards(rc, RobotPlayer.myhq);
         }
         // Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
@@ -265,12 +288,12 @@ public class LauncherStrategy {
     static void scanIslands(RobotController rc) throws GameActionException {
         int[] ids = rc.senseNearbyIslands();
         for(int id : ids) {
-            // if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
-            //     MapLocation[] locs = rc.senseNearbyIslandLocations(id);
-            //     if(locs.length > 0) {
-            //         islandLoc = locs[0];
-            //     }
-            // }
+            if(rc.senseTeamOccupyingIsland(id) == rc.getTeam().opponent()) {
+                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
+                if(locs.length > 0) {
+                    islandLoc = locs[0];
+                }
+            }
             Communication.updateIslandInfo(rc, id);
         }
     }
@@ -285,5 +308,13 @@ public class LauncherStrategy {
                 Clock.yield();
             }
         }
+    }
+
+    static boolean scanAmp(RobotController rc) throws GameActionException { // scan should only be on recon bots ex: amp and launcher
+        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
+        for(RobotInfo robot : robots) {
+           if(robot.getType() == RobotType.AMPLIFIER) return true;
+        }
+        return false;
     }
 }

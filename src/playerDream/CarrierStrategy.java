@@ -14,6 +14,7 @@ public class CarrierStrategy {
 
     static boolean anchorMode = false;
     static int numHeadquarters = 0;
+    static boolean mana = false;
 
     /**
      * Run a single turn for a Carrier.
@@ -27,6 +28,39 @@ public class CarrierStrategy {
         scanHQ(rc);
         scanWells(rc);
         if(wellLoc == null && wellLocs.size() > 0) wellLoc = wellLocs.get(RobotPlayer.rng.nextInt(wellLocs.size()));
+        for(WellInfo well: rc.senseNearbyWells(hqLoc, numHeadquarters)){
+            if(well.getResourceType() == ResourceType.MANA){
+                mana = true;
+                break;
+            }
+        }
+        if(!mana && RobotPlayer.turnCount < 10)
+        {
+            // RobotInfo[] allies = rc.senseNearbyRobots(2, rc.getTeam());
+            // int lowestID = rc.getID();
+            // MapLocation leaderPos = null;
+            // for (RobotInfo ally : allies){
+            //     if (ally.getType() != RobotType.CARRIER)
+            //         continue;
+            //     if (ally.getID() < lowestID){
+            //         lowestID = ally.getID();
+            //         leaderPos = ally.getLocation();
+            //     }
+            // }
+            // if (leaderPos != null){
+            //     Pathing.moveTowards(rc, leaderPos);
+            //     rc.setIndicatorString("Following " + lowestID);
+            //     return;
+            // }
+            // else{
+            //     Direction moveDir = rc.getLocation().directionTo(hqLoc).opposite();
+            //     if (rc.canMove(moveDir)) {
+            //         rc.move(moveDir);
+            //     }
+            //     rc.setIndicatorString("I'm the leader!");
+            // }
+            
+        }
         scanIslands(rc);
         RobotPlayer.scan(rc);
 
@@ -129,6 +163,10 @@ public class CarrierStrategy {
             for(WellInfo well : wells){
                 if(!wellLocs.contains(well.getMapLocation())){
                     wellLocs.add(well.getMapLocation());
+                    if(well.getResourceType() == ResourceType.MANA){
+                        wellLocs.add(well.getMapLocation());
+                        wellLocs.add(well.getMapLocation());
+                    }
                 }
             }
         };
