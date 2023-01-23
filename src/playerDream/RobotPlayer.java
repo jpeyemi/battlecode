@@ -77,10 +77,10 @@ public strictfp class RobotPlayer {
         myhq = rc.getLocation();
         int x = myhq.x;
         int y = myhq.y;
-        // explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()));
-        // explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()-y));
-        // explore.add(new MapLocation(rc.getMapWidth(),rc.getMapHeight()-y));
-        // explore.add(new MapLocation(rc.getMapWidth()/2,rc.getMapHeight()/2));
+        explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()));
+        explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()-y));
+        explore.add(new MapLocation(rc.getMapWidth(),rc.getMapHeight()-y));
+        explore.add(new MapLocation(rc.getMapWidth()/2,rc.getMapHeight()/2));
         // for (RobotInfo robot: rc.senseNearbyRobots(2)){
         //     if(robot.getType() == RobotType.HEADQUARTERS){
         //         myhq = robot.getLocation();

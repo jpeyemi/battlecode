@@ -313,7 +313,7 @@ class Communication {
         }
     }
 
-    static MapLocation getClosestEnemy(RobotController rc) {
+    static MapLocation getClosestEnemy(RobotController rc) throws GameActionException{
         MapLocation answer = null;
         for (int i = STARTING_ENEMY_IDX; i < GameConstants.SHARED_ARRAY_LENGTH; i++) {
             final int value;

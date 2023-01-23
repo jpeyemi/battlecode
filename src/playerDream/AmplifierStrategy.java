@@ -11,8 +11,8 @@ public class AmplifierStrategy {
         }
         scanIslands(rc);
         RobotPlayer.scan(rc);
-        RobotPlayer.squad(rc);
-        RobotPlayer.moveSquad(rc);
+        // RobotPlayer.squad(rc);
+        // RobotPlayer.moveSquad(rc);
 
         RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo enemy : visibleEnemies) {
@@ -36,10 +36,27 @@ public class AmplifierStrategy {
         }else{
             RobotPlayer.follower = false;
         }
+
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);
         if(enemyLocation != null){
             MapLocation robotLocation = rc.getLocation();
             Pathing.moveTowards(rc, enemyLocation);
+        }
+
+        if(rc.getLocation().distanceSquaredTo(RobotPlayer.center) < 6){
+            RobotPlayer.toCenter = false;
+        }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
+            if(RobotPlayer.toCenter == false){
+                RobotPlayer.toCenter =true;
+                if(RobotPlayer.explore.size()>0){
+                    RobotPlayer.center = RobotPlayer.explore.get(0);
+                    RobotPlayer.explore.remove(0);
+                }
+            }
+        }
+
+        if(RobotPlayer.toCenter){
+            Pathing.moveTowards(rc, RobotPlayer.center);
         }
     }
     // static void runAmplifier(RobotController rc, int temp) throws GameActionException {

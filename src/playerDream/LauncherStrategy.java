@@ -25,6 +25,7 @@ public class LauncherStrategy {
         priority.put(RobotType.AMPLIFIER, 3);
     }
     static MapLocation islandLoc;
+    static boolean survey = false;
     
 
 
@@ -260,16 +261,23 @@ public class LauncherStrategy {
         //     rc.move(moveDir);
         // }
 
-
         if(rc.getLocation().distanceSquaredTo(RobotPlayer.center) < 6){
             RobotPlayer.toCenter = false;
-        }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
-            if(RobotPlayer.toCenter == false){
+            if(survey && scanAmp(rc)){
                 RobotPlayer.toCenter =true;
                 if(RobotPlayer.explore.size()>0){
                     RobotPlayer.center = RobotPlayer.explore.get(0);
                     RobotPlayer.explore.remove(0);
                 }
+            }
+        }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
+            if(RobotPlayer.toCenter == false){
+                RobotPlayer.toCenter =true;
+                survey = true;
+                // if(RobotPlayer.explore.size()>0){
+                //     RobotPlayer.center = RobotPlayer.explore.get(0);
+                //     RobotPlayer.explore.remove(0);
+                // }
             }
         }
 
