@@ -114,6 +114,9 @@ public class CarrierStrategy {
                 rc.placeAnchor();
                 anchorMode = false;
                 islandLoc = null;
+            } else if(rc.senseIsland(rc.getLocation()) != -1 && rc.getLocation().distanceSquaredTo(islandLoc) < 2 && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == rc.getTeam()){
+                islandLoc = null;
+
             }
             // }else if(rc.senseIsland(rc.getLocation()) != -1 && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) != Team.NEUTRAL){
             //     if(rc.canAttack(rc.getLocation().add(RobotPlayer.directions[0]))){

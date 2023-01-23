@@ -42,7 +42,7 @@ class HeadquartersStrategy{
         Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
         
-        if (RobotPlayer.turnCount % 100 == 50){
+        if (RobotPlayer.turnCount % 80 == 20){
             rc.setIndicatorString("Trying to build a Amplifier");
             if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
                 rc.buildRobot(RobotType.AMPLIFIER, newLoc);

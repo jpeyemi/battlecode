@@ -138,7 +138,7 @@ class Communication {
         if (rc.canWriteSharedArray(0, 0)) {
             while (messagesQueue.size() > 0 ) {
                 Message msg = messagesQueue.remove(0);
-                if (rc.canWriteSharedArray(msg.idx, msg.value)) {
+                if (rc.readSharedArray(msg.idx) != msg.value && rc.canWriteSharedArray(msg.idx, msg.value)) {
                     try{
                         rc.writeSharedArray(msg.idx, msg.value);
                     } catch (GameActionException e){
