@@ -93,7 +93,7 @@ public class Pathing {
             // System.out.println("Path has not been created");
             currentPath = new Path(pathing(rc.getLocation(), closetToTarget(rc, target), rc, new HashMap<Node, Integer>()), rc);
             if (currentPath.path == null) {
-                currentPath = null;
+                //currentPath = null;
                 rc.setIndicatorString("THERE'S NO PATH!");
                 // bugZero(rc, target);
             }

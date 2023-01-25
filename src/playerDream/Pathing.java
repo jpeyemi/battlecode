@@ -15,7 +15,8 @@ public class Pathing {
     static MapLocation start = null;
     static MapLocation end = null;
     static void moveTowards(RobotController rc, MapLocation target) throws GameActionException {
-        if (rc.getLocation().equals(target)) {
+        rc.setIndicatorString(target.toString());
+        if (rc.getLocation().distanceSquaredTo(target) < 2) {
             return;
         }
         if (!rc.isMovementReady()) {

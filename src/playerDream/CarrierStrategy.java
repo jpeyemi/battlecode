@@ -200,10 +200,11 @@ public class CarrierStrategy {
 
     static void scanIslands(RobotController rc) throws GameActionException {
         for (int i = 0; i < GameConstants.MAX_NUMBER_ISLANDS; i++) {
-            if(rc.readSharedArray(i+Communication.STARTING_ISLAND_IDX) == 0){
-                continue;
-            }
+            // if(rc.readSharedArray(i+Communication.STARTING_ISLAND_IDX) == 0){
+            //     continue;
+            // }
             MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+            System.out.println("read"+islandNearestLoc);
             float lowestDistance = 10000;
             if (islandNearestLoc != null) {
                 float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);

@@ -213,38 +213,38 @@ public class LauncherStrategy {
         }
 
 
-        if(islandLoc == null) {
-            for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
-                MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-                double farDistance = 1.0;
-                if (islandNearestLoc != null) {
-                    float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-                    if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
-                        if(rc.getLocation() != islandNearestLoc && dist > farDistance) {
-                            islandLoc = islandNearestLoc;
-                            farDistance = dist;
-                        }
-                    }
-                }
-            }
-        }
-        if(islandLoc == null) {
-            scanIslands(rc);
-        }
-        if(islandLoc != null){
-
-            MapLocation robotLocation = rc.getLocation();
+        // if(islandLoc == null) {
+        //     for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
+        //         MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+        //         double farDistance = 1.0;
+        //         if (islandNearestLoc != null) {
+        //             float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+        //             if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
+        //                 if(rc.getLocation() != islandNearestLoc && dist > farDistance) {
+        //                     islandLoc = islandNearestLoc;
+        //                     farDistance = dist;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // if(islandLoc == null) {
+        //     scanIslands(rc);
+        // }
+        // if(islandLoc != null){
+        //     System.out.println(islandLoc.toString());
+        //     MapLocation robotLocation = rc.getLocation();
             //Pathing.moveTowards(rc, enemyLocation);
             // Direction moveDir = robotLocation.directionTo(islandLoc);
             // if (rc.canMove(moveDir)) {
             //     rc.move(moveDir);
             // }
 
-            Pathing.moveTowards(rc, islandLoc);
-            if(rc.getLocation() == islandLoc || rc.canSenseRobotAtLocation(islandLoc)){
-                islandLoc = null; //expesive potenially
-            } 
-        }
+        //     Pathing.moveTowards(rc, islandLoc);
+        //     if(rc.getLocation() == islandLoc || rc.canSenseRobotAtLocation(islandLoc)){
+        //         islandLoc = null; //expesive potenially
+        //     } 
+        // }
 
 
         // WellInfo[] wells = rc.senseNearbyWells();
@@ -265,10 +265,10 @@ public class LauncherStrategy {
             RobotPlayer.toCenter = false;
             if(survey && scanAmp(rc)){
                 RobotPlayer.toCenter =true;
-                if(RobotPlayer.explore.size()>0){
-                    RobotPlayer.center = RobotPlayer.explore.get(0);
-                    RobotPlayer.explore.remove(0);
-                }
+                // if(RobotPlayer.explore.size()>0){
+                //     RobotPlayer.center = RobotPlayer.explore.get(0);
+                //     RobotPlayer.explore.remove(0);
+                // }
             }
         }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
             if(RobotPlayer.toCenter == false){

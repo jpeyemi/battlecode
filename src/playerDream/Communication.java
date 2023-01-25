@@ -163,10 +163,14 @@ class Communication {
                 closestIslandLoc = loc;
             }
         }
+        if(closestDistance == -1){
+            return;
+        }
+        //System.out.println("writing"+closestIslandLoc.toString());
         // Remember reading is cheaper than writing so we don't want to write without knowing if it's helpful
         int idx = id + STARTING_ISLAND_IDX;
         int oldIslandValue = rc.readSharedArray(idx);
-        int updatedIslandValue = bitPackIslandInfo(rc, idx, closestIslandLoc);
+        int updatedIslandValue = bitPackIslandInfo(rc, id, closestIslandLoc);
         if (oldIslandValue != updatedIslandValue) {
             Message msg = new Message(idx, updatedIslandValue, RobotPlayer.turnCount);
             messagesQueue.add(msg);
@@ -256,6 +260,7 @@ class Communication {
             islandId = islandId + STARTING_ISLAND_IDX;
             int islandInt = rc.readSharedArray(islandId);
             int idx = islandInt >> (HEALTH_BITS + TEAM_BITS);
+            //System.out.println("writing"+intToLocation(rc, idx).toString());
             return intToLocation(rc, idx);
         } catch (GameActionException e) {} 
         return null;
