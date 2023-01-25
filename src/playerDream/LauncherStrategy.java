@@ -212,39 +212,38 @@ public class LauncherStrategy {
             // }
         }
 
-
-        // if(islandLoc == null) {
-        //     for (int i = Communication.STARTING_ISLAND_IDX; i < Communication.STARTING_ISLAND_IDX + GameConstants.MAX_NUMBER_ISLANDS; i++) {
-        //         MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-        //         double farDistance = 1.0;
-        //         if (islandNearestLoc != null) {
-        //             float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-        //             if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
-        //                 if(rc.getLocation() != islandNearestLoc && dist > farDistance) {
-        //                     islandLoc = islandNearestLoc;
-        //                     farDistance = dist;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
         // if(islandLoc == null) {
         //     scanIslands(rc);
         // }
-        // if(islandLoc != null){
-        //     System.out.println(islandLoc.toString());
-        //     MapLocation robotLocation = rc.getLocation();
-            //Pathing.moveTowards(rc, enemyLocation);
+        if(islandLoc == null) {
+            for (int i = 0; i < GameConstants.MAX_NUMBER_ISLANDS; i++) {
+                MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                double lowDistance = 1000;
+                if (islandNearestLoc != null) {
+                    float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+                    if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
+                        if(rc.getLocation() != islandNearestLoc && dist < lowDistance) {
+                            islandLoc = islandNearestLoc;
+                            lowDistance = dist;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if(islandLoc != null){
+            System.out.println(islandLoc.toString());
+            // MapLocation robotLocation = rc.getLocation();
             // Direction moveDir = robotLocation.directionTo(islandLoc);
             // if (rc.canMove(moveDir)) {
             //     rc.move(moveDir);
             // }
 
-        //     Pathing.moveTowards(rc, islandLoc);
-        //     if(rc.getLocation() == islandLoc || rc.canSenseRobotAtLocation(islandLoc)){
-        //         islandLoc = null; //expesive potenially
-        //     } 
-        // }
+            Pathing.moveTowards(rc, islandLoc);
+            if(rc.getLocation() == islandLoc || rc.canSenseRobotAtLocation(islandLoc)){
+                islandLoc = null; //expesive potenially
+            } 
+        }
 
 
         // WellInfo[] wells = rc.senseNearbyWells();
@@ -297,12 +296,12 @@ public class LauncherStrategy {
     static void scanIslands(RobotController rc) throws GameActionException {
         int[] ids = rc.senseNearbyIslands();
         for(int id : ids) {
-            if(rc.senseTeamOccupyingIsland(id) == rc.getTeam().opponent()) {
-                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
-                if(locs.length > 0) {
-                    islandLoc = locs[0];
-                }
-            }
+            // if(rc.senseTeamOccupyingIsland(id) == rc.getTeam().opponent()) {
+            //     MapLocation[] locs = rc.senseNearbyIslandLocations(id);
+            //     if(locs.length > 0) {
+            //         islandLoc = locs[0];
+            //     }
+            // }
             Communication.updateIslandInfo(rc, id);
         }
     }
