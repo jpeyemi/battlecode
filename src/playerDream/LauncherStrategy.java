@@ -262,12 +262,12 @@ public class LauncherStrategy {
 
         if(rc.getLocation().distanceSquaredTo(RobotPlayer.center) < 6){
             RobotPlayer.toCenter = false;
-            if(survey && scanAmp(rc)){
+            if(survey && scanAmp(rc) && rc.senseNearbyRobots(-1,rc.getTeam()).length > 10){
                 RobotPlayer.toCenter =true;
-                // if(RobotPlayer.explore.size()>0){
-                //     RobotPlayer.center = RobotPlayer.explore.get(0);
-                //     RobotPlayer.explore.remove(0);
-                // }
+                if(RobotPlayer.explore.size()>0){
+                    RobotPlayer.center = RobotPlayer.explore.get(0);
+                    RobotPlayer.explore.remove(0);
+                }
             }
         }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
             if(RobotPlayer.toCenter == false){

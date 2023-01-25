@@ -74,13 +74,15 @@ public class CarrierStrategy {
         //Transfer resource to headquarters
         depositResource(rc, ResourceType.ADAMANTIUM);
         depositResource(rc, ResourceType.MANA);
-        if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)) {
-            rc.takeAnchor(hqLoc, Anchor.STANDARD);
-            anchorMode = true;
-        }
-        if(rc.canTakeAnchor(hqLoc, Anchor.ACCELERATING)) {
-            rc.takeAnchor(hqLoc, Anchor.ACCELERATING);
-            anchorMode = true;
+        if(islandLoc != null){
+            if(rc.canTakeAnchor(hqLoc, Anchor.STANDARD)) {
+                rc.takeAnchor(hqLoc, Anchor.STANDARD);
+                anchorMode = true;
+            }
+            if(rc.canTakeAnchor(hqLoc, Anchor.ACCELERATING)) {
+                rc.takeAnchor(hqLoc, Anchor.ACCELERATING);
+                anchorMode = true;
+            }
         }
 
         //Collect from well if close and inventory not full
@@ -114,7 +116,7 @@ public class CarrierStrategy {
                 rc.placeAnchor();
                 anchorMode = false;
                 islandLoc = null;
-            } else if(rc.senseIsland(rc.getLocation()) != -1 && rc.getLocation().distanceSquaredTo(islandLoc) < 2 && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == rc.getTeam()){
+            } else if(rc.senseIsland(rc.getLocation()) != -1 && rc.getLocation() == islandLoc && rc.senseTeamOccupyingIsland(rc.senseIsland(rc.getLocation())) == rc.getTeam()){
                 islandLoc = null;
 
             }
@@ -199,6 +201,7 @@ public class CarrierStrategy {
     }
 
     static void scanIslands(RobotController rc) throws GameActionException {
+        islandLoc = null;
         for (int i = 0; i < GameConstants.MAX_NUMBER_ISLANDS; i++) {
             // if(rc.readSharedArray(i+Communication.STARTING_ISLAND_IDX) == 0){
             //     continue;
