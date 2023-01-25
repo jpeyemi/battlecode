@@ -204,7 +204,7 @@ public class CarrierStrategy {
             //     continue;
             // }
             MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-            System.out.println("read"+islandNearestLoc);
+            // System.out.println("read"+islandNearestLoc);
             float lowestDistance = 10000;
             if (islandNearestLoc != null) {
                 float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);

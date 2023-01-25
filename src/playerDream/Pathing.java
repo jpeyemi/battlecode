@@ -12,9 +12,10 @@ public class Pathing {
     // Basic bug nav - Bug 0
     static MapLocation lastPos = null;
     static Direction currentDirection = null;
+    static boolean followingObstacle = false;
     static MapLocation start = null;
     static MapLocation end = null;
-    static void moveTowards(RobotController rc, MapLocation target) throws GameActionException {
+    static void moveTowards(RobotController rc, MapLocation target, int r) throws GameActionException {
         rc.setIndicatorString(target.toString());
         if (rc.getLocation().distanceSquaredTo(target) < 2) {
             return;
@@ -118,8 +119,80 @@ public class Pathing {
             }
         }
     }
-    static void moveTowards(RobotController rc, MapLocation target, int i) throws GameActionException{
-        bugZero(rc, target);
+    
+    static void actualFollowObstacle(RobotController rc) throws GameActionException {
+        if (rc.canMove(currentDirection)) {
+            rc.move(currentDirection);
+        } else {
+            for (int i = 0; i < 8; i++) {
+                if (rc.canMove(currentDirection) ) {
+                    //lastPos = rc.getLocation();
+                    rc.move(currentDirection);
+                    currentDirection = currentDirection.rotateRight();
+                    break;
+                } else {
+                    currentDirection = currentDirection.rotateLeft();
+                }
+            }
+        }
+    }
+    
+    static void followObstacle(RobotController rc, MapLocation target) throws GameActionException {
+        if (currentDirection == null) {
+            Direction bestDir = RobotPlayer.directions[0];
+            int minDist = Integer.MAX_VALUE;
+            MapLocation current = rc.getLocation();
+            for (Direction dir: RobotPlayer.directions) {
+                MapLocation possibleMove = current.add(dir);
+                if (possibleMove.distanceSquaredTo(target) < minDist && rc.canSenseLocation(possibleMove) && rc.sensePassability(possibleMove)) {
+                    bestDir = dir;
+                    minDist = possibleMove.distanceSquaredTo(target);
+                }
+            }
+            if (bestDir != null && rc.canMove(bestDir)) {
+                currentDirection = bestDir;
+                rc.move(bestDir);
+            } else {
+                RobotPlayer.moveRandom(rc);
+            }
+        } else {
+            actualFollowObstacle(rc);
+    }
+    }
+
+    static void bugTwo(RobotController rc, MapLocation start, MapLocation target, int threshold) throws GameActionException{
+        if (rc.getLocation().distanceSquaredTo(target) < 2) {
+            return;
+        }
+        if (!rc.isMovementReady()) {
+            return;
+        }
+        MapLocation current = rc.getLocation();
+        // Move straight towards path
+        Direction dir = current.directionTo(target);
+        rc.setIndicatorString(dir.toString());
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+            currentDirection = null;
+            return;
+        } else { // Obstacle Handling 
+            Vector vector1 = new Vector(current.x - start.x, current.y - start.y);
+            Vector vector2 = new Vector(target.x - start.x, target.y - start.y);
+            double angle = vector1.getAngle(vector2);
+            double error = vector1.magnitude() * Math.sin(angle);
+            if (error < threshold) currentDirection = null;
+            followObstacle(rc, target);
+        }
+        
+
+
+
+    }
+
+    static void moveTowards(RobotController rc, MapLocation target) throws GameActionException{
+        if (start == null) start = rc.getLocation();
+        if (end == null || target != end) end = target;
+        bugTwo(rc, start, end, 2);
     }
 
 
