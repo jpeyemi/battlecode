@@ -22,7 +22,7 @@ class HeadquartersStrategy{
         } else if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
-        Communication.checkSquad(rc);
+        //Communication.checkSquad(rc);
         if(RobotPlayer.turnCount > 50){
             anchorStrat(rc);
         }
@@ -49,7 +49,8 @@ class HeadquartersStrategy{
             }
         }
         
-        if(carrierCount < 10){
+        //if(carrierCount < 10){
+        if(RobotPlayer.turnCount < 50){
             boolean buildAll = true;
             while(buildAll){
                 if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
@@ -69,31 +70,62 @@ class HeadquartersStrategy{
                 }
             }
         }
-        else if(carrierCount > 10){
+        //else if(carrierCount > 10){
+        // else if(RobotPlayer.turnCount > 50){
 
-            boolean buildAll = true;
-            while(buildAll && rc.getResourceAmount(ResourceType.MANA)> 40){
-                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
-                }else{
-                    buildAll = false;
-                }
-            }
-            // buildAll = true;
-            // while(buildAll  && rc.getResourceAmount(ResourceType.ADAMANTIUM)> 40){
-            //     if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-            //         rc.buildRobot(RobotType.CARRIER, newLoc);
-            //     }else{
-            //         buildAll = false;
-            //     }
-            // }
+        //     boolean buildAll = true;
+        //     // while(buildAll && rc.getResourceAmount(ResourceType.MANA)> 40){
+        //     //     if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+        //     //         rc.buildRobot(RobotType.LAUNCHER, newLoc);
+        //     //     }else{
+        //     //         buildAll = false;
+        //     //     }
+        //     // }
+        //     // buildAll = true;
+        //     // while(buildAll  && rc.getResourceAmount(ResourceType.ADAMANTIUM) > 60){
+        //         if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+        //             rc.buildRobot(RobotType.CARRIER, newLoc);
+        //         }//else{
+        //     //         buildAll = false;
+        //     //     }
+        //     // }
             
-        }else {
-            rc.setIndicatorString("Trying to build a launcher");
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
+        // }else {
+        //     rc.setIndicatorString("Trying to build a launcher");
+        //     if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+        //         rc.buildRobot(RobotType.LAUNCHER, newLoc);
+        //     }
+        // }
+
+
+        boolean buildAll = true;
+        while(buildAll && rc.getResourceAmount(ResourceType.ADAMANTIUM) > 120){
+            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+                rc.buildRobot(RobotType.CARRIER, newLoc);
+            }else{
+                buildAll = false;
             }
         }
+        // if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 3 * RobotType.CARRIER.buildCostMana)
+        //     return;
+        // int attempts = 0;
+        // int numPlaced = 0;
+        // while (numPlaced != 5 && attempts != 30){
+        //     attempts++;
+        //     if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+        //         rc.buildRobot(RobotType.CARRIER, newLoc);
+        //         numPlaced++;
+        //     }
+        //     else{
+        //         dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+        //         newLoc = rc.getLocation().add(dir);
+        //     }
+        // }
+        if(RobotPlayer.turnCount > 100){
+            if (rc.getResourceAmount(ResourceType.MANA) < 3 * RobotType.LAUNCHER.buildCostMana)
+            return;
+        }
+
         if (rc.getResourceAmount(ResourceType.MANA) < 1 * RobotType.LAUNCHER.buildCostMana)
             return;
         int attempts = 0;
@@ -124,7 +156,7 @@ class HeadquartersStrategy{
 
         //int isl = isIsland(rc);
 
-        if (rc.canBuildAnchor(Anchor.STANDARD) && anchorTime) {
+        if (rc.canBuildAnchor(Anchor.STANDARD) && anchorTime && rc.getNumAnchors(Anchor.STANDARD) < 1) {
             // If we can build an anchor do it!
             anchorTime = false;
             anchorCooldown = anchorMaxCooldown;

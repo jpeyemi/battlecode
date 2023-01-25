@@ -169,7 +169,7 @@ public class CarrierStrategy {
                     if(well.getResourceType() == ResourceType.MANA){
                         Communication.addWell(well, rc);
                         wellLocs.add(well.getMapLocation());
-                        wellLocs.add(well.getMapLocation());
+                        //wellLocs.add(well.getMapLocation());
                     }
                 }
             }
@@ -177,8 +177,8 @@ public class CarrierStrategy {
         MapLocation cwell = Communication.getNearestWell(rc);
         if(cwell != null){
             wellLocs.add(cwell);
-            wellLocs.add(cwell);
-            wellLocs.add(cwell);
+            //wellLocs.add(cwell);
+            //wellLocs.add(cwell);
         }
     }
 
@@ -204,7 +204,8 @@ public class CarrierStrategy {
             //     continue;
             // }
             MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-            // System.out.println("read"+islandNearestLoc);
+            System.out.println("read"+islandNearestLoc);
+            //System.out.println("read"+islandNearestLoc);
             float lowestDistance = 10000;
             if (islandNearestLoc != null) {
                 float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
