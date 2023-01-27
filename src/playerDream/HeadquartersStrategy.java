@@ -13,17 +13,30 @@ import java.util.Set;
 class HeadquartersStrategy{
     static boolean anchorTime = true;
     static int anchorCooldown = 0;
-    static int anchorMaxCooldown = 20;
+    static int anchorMaxCooldown = 40;
     static int openIsland = -1;
+    static boolean saving = false;
+    static boolean spawning = false;
 
     static void runHeadquarters(RobotController rc) throws GameActionException {
         if (RobotPlayer.turnCount == 1) {
             Communication.addHeadquarter(rc);
+            scanWells(rc);
         } else if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1,rc.getTeam().opponent());
+        if(enemies.length > 0){
+            Communication.reportEnemy(rc,enemies[0].getLocation());
+            if(enemies.length > 15){
+                counterStrat(rc);
+                return;
+            }
+        }
+        //RobotPlayer.scan(rc);
+
         //Communication.checkSquad(rc);
-        if(RobotPlayer.turnCount > 50){
+        if(RobotPlayer.turnCount > 200){
             anchorStrat(rc);
         }
         buildStrat(rc);
@@ -31,14 +44,39 @@ class HeadquartersStrategy{
 
     }
 
-    static void buildStrat(RobotController rc) throws GameActionException{
-        RobotInfo[] robots = rc.senseNearbyRobots(-1, rc.getTeam());
-        int carrierCount = 0;
-        for (RobotInfo r : robots){
-            if(r.getType() == RobotType.CARRIER){
-                carrierCount++;
-            }
+
+    static void counterStrat(RobotController rc) throws GameActionException{
+        if(!saving && !spawning){
+            saving = true;
         }
+        if(rc.getResourceAmount(ResourceType.MANA) > 10 * RobotType.LAUNCHER.buildCostMana){
+            spawning = true;
+            saving = false;
+        }
+        if(spawning){
+            Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+            MapLocation newLoc = rc.getLocation().add(dir);
+            int attempts = 0;
+            int numPlaced = 0;
+            while (numPlaced != 5 && attempts != 30){
+                attempts++;
+                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                    numPlaced++;
+                }
+                else{
+                    dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+                    newLoc = rc.getLocation().add(dir);
+                }
+            }
+            rc.setIndicatorString("Trying to build a launcher");
+        }
+        if(rc.getResourceAmount(ResourceType.MANA) < 10){
+            spawning = false;
+        }
+    }
+
+    static void buildStrat(RobotController rc) throws GameActionException{
         Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
         
@@ -50,7 +88,7 @@ class HeadquartersStrategy{
         }
         
         //if(carrierCount < 10){
-        if(RobotPlayer.turnCount < 50){
+        if(RobotPlayer.turnCount < 200){
             boolean buildAll = true;
             while(buildAll){
                 if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
@@ -106,21 +144,6 @@ class HeadquartersStrategy{
                 buildAll = false;
             }
         }
-        // if (rc.getResourceAmount(ResourceType.ADAMANTIUM) < 3 * RobotType.CARRIER.buildCostMana)
-        //     return;
-        // int attempts = 0;
-        // int numPlaced = 0;
-        // while (numPlaced != 5 && attempts != 30){
-        //     attempts++;
-        //     if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-        //         rc.buildRobot(RobotType.CARRIER, newLoc);
-        //         numPlaced++;
-        //     }
-        //     else{
-        //         dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
-        //         newLoc = rc.getLocation().add(dir);
-        //     }
-        // }
         if(RobotPlayer.turnCount > 100){
             if (rc.getResourceAmount(ResourceType.MANA) < 3 * RobotType.LAUNCHER.buildCostMana)
             return;
@@ -186,5 +209,12 @@ class HeadquartersStrategy{
             }
         }
         return (-1);
+    }
+
+    static void scanWells(RobotController rc) throws GameActionException {
+        WellInfo[] wells = rc.senseNearbyWells();
+        for(WellInfo well : wells){
+            Communication.addWell(well, rc);
+        }
     }
 }

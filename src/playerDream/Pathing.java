@@ -15,7 +15,7 @@ public class Pathing {
     static boolean followingObstacle = false;
     static MapLocation start = null;
     static MapLocation end = null;
-    static void moveTowards(RobotController rc, MapLocation target, int r) throws GameActionException {
+    static void moveTowards(RobotController rc, MapLocation target) throws GameActionException {
         rc.setIndicatorString(target.toString());
         if (rc.getLocation() == target) {
             return;
@@ -24,8 +24,13 @@ public class Pathing {
             return;
         }
         Direction d = rc.getLocation().directionTo(target);
+        MapInfo movetile;
+        MapLocation sensing;
         if (rc.canMove(d)) {
-            rc.move(d);
+            movetile = rc.senseMapInfo(rc.getLocation().add(d));
+            while(rc.canMove(d) && (!(movetile.getCurrentDirection() == d.opposite())|| movetile.getCurrentDirection() == Direction.CENTER)){
+                rc.move(d);
+            }
             currentDirection = null; // there is no obstacle we're going around
         } else {
             // Going around some obstacle: can't move towards d because there's an obstacle there
@@ -36,7 +41,11 @@ public class Pathing {
             }
             // Try to move in a way that keeps the obstacle on our right
             for (int i = 0; i < 8; i++) {
-                if (rc.canMove(currentDirection) && !rc.canSenseRobotAtLocation(rc.getLocation().add(currentDirection))) {
+                sensing = rc.getLocation().add(currentDirection);
+                if(!rc.canSenseLocation(sensing)) continue;
+                movetile = rc.senseMapInfo(sensing);
+                rc.setIndicatorString(sensing.toString());
+                if (rc.canSenseLocation(sensing) && rc.canMove(currentDirection) && !rc.canSenseRobotAtLocation(sensing) && (!(movetile.getCurrentDirection() == d.opposite()) || movetile.getCurrentDirection() == Direction.CENTER)) {
                     rc.move(currentDirection);
                     currentDirection = currentDirection.rotateRight();
                     break;
@@ -161,7 +170,7 @@ public class Pathing {
     }
 
     static void bugTwo(RobotController rc, MapLocation start, MapLocation target, int threshold) throws GameActionException{
-        if (rc.getLocation().distanceSquaredTo(target) < 2) {
+        if (rc.getLocation() == target) {
             return;
         }
         if (!rc.isMovementReady()) {
@@ -189,7 +198,7 @@ public class Pathing {
 
     }
 
-    static void moveTowards(RobotController rc, MapLocation target) throws GameActionException{
+    static void moveTowards(RobotController rc, MapLocation target, int i) throws GameActionException{
         if (start == null) start = rc.getLocation();
         if (end == null || target != end) end = target;
         bugTwo(rc, start, end, 2);

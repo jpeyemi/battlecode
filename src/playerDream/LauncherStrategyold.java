@@ -6,7 +6,7 @@ import javax.naming.CommunicationException;
 
 import battlecode.common.*;
 
-public class LauncherStrategy {
+public class LauncherStrategyold {
 
     /**
      * Run a single turn for a Launcher.
@@ -26,12 +26,18 @@ public class LauncherStrategy {
     }
     static MapLocation islandLoc;
     static boolean survey = false;
-    static boolean followStep = true;
     
 
 
     static void runLauncher(RobotController rc) throws GameActionException {
         // Try to attack someone
+        int radius = rc.getType().actionRadiusSquared;
+        Team opponent = rc.getTeam().opponent();
+        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
+        int lowestHealth = 100;
+        int smallestDistance = 100;
+        int bestTarget = 6;
+        RobotInfo target = null;
         if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
@@ -42,32 +48,136 @@ public class LauncherStrategy {
                 if (rc.canMove(moveDir)) {
                     rc.move(moveDir);
                 }
-                Communication.tryWriteMessages(rc);
                 return;
             }
         }
-        followStep = true;
+
         avoidHqKillRadius(rc);
         scanIslands(rc);
         scanWells(rc);
-        Communication.clearObsoleteEnemies(rc);
-        attackStrat(rc);
+        // RobotPlayer.scan(rc);
+        // RobotPlayer.squad(rc);
+        // RobotPlayer.scan(rc);
+        
+        //Communication.clearObsoleteEnemies(rc);
+        if (enemies.length > 0) {
+            for (RobotInfo enemy: enemies){
+                if(enemy.getType() == RobotType.HEADQUARTERS){
+                    Communication.addEHq(enemy, rc);
+                    continue;
+                }
+                Communication.reportEnemy(rc, enemy.location);
+                int enemyHealth = enemy.getHealth();
+                int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
+                RobotType enemyType = enemy.getType();
+                if (priority.containsKey(enemyType) && priority.get(enemyType) < bestTarget){
+                    target = enemy;
+                    lowestHealth = enemyHealth;
+                    smallestDistance = enemyDistance;
+                    bestTarget = priority.get(enemyType);
+                }
+                else if (enemyHealth < lowestHealth){
+                    target = enemy;
+                    lowestHealth = enemyHealth;
+                    smallestDistance = enemyDistance;
+                    //bestTarget = priority.get(enemyType);
+                }
+                else if (enemyHealth == lowestHealth){
+                    if (enemyDistance < smallestDistance){
+                        target = enemy;
+                        smallestDistance = enemyDistance;
+                        //bestTarget = priority.get(enemyType);
+                    }
+                }
+            }
+        }
+        
 
-        // if(target != null){
-        //     MapLocation enemyLocation = target.getLocation();
-        //     if(target.getType() == RobotType.HEADQUARTERS){
-        //         //enemyLocation = rc.getLocation();
-        //         Direction moveDir = rc.getLocation().directionTo(enemyLocation).opposite();
-        //         if (rc.canMove(moveDir)) {
-        //             rc.move(moveDir);
-        //         }
-        //         return;
-        //     }
-        //     MapLocation robotLocation = rc.getLocation();
-        //     Pathing.moveTowards(rc, enemyLocation);
-        //     Clock.yield();
+        if (target != null){
+            if (rc.canAttack(target.getLocation()))
+                rc.attack(target.getLocation());
+        }
+        Communication.tryWriteMessages(rc);
+        // RobotPlayer.moveSquad(rc);
+        //if(!RobotPlayer.leader) return;
+        // if(Communication.eheadquarterLocs[0] != null){
+        //     Pathing.moveTowards(rc, Communication.eheadquarterLocs[0]); // to be changed
         //     return;
-        // } else {
+        // }
+
+        // if(RobotPlayer.follower) {
+        //     Pathing.moveTowards(rc, RobotPlayer.following.getLocation());
+        //     return;
+        // }
+
+        RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, opponent);
+        for (RobotInfo enemy : visibleEnemies) {
+            if(enemy.getType() == RobotType.HEADQUARTERS){
+                Communication.addEHq(enemy, rc);
+                target = enemy;
+                break;
+            }
+            // if(enemy.getTeam() == rc.getTeam() ){
+            //     if(enemy.getType() == RobotType.AMPLIFIER && bestTarget != 6){
+            //         target = enemy;
+            //     }
+            //     continue;
+            // }
+            Communication.reportEnemy(rc, enemy.location);
+            int enemyHealth = enemy.getHealth();
+            int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
+            RobotType enemyType = enemy.getType();
+            if (priority.containsKey(enemyType) && priority.get(enemyType) < bestTarget){
+                target = enemy;
+                lowestHealth = enemyHealth;
+                smallestDistance = enemyDistance;
+                bestTarget = priority.get(enemyType);
+            }
+            else if (enemyHealth < lowestHealth){
+                target = enemy;
+                lowestHealth = enemyHealth;
+                smallestDistance = enemyDistance;
+                //bestTarget = priority.get(enemyType);
+            }
+            else if (enemyHealth == lowestHealth){
+                if (enemyDistance < smallestDistance){
+                    target = enemy;
+                    smallestDistance = enemyDistance;
+                    //bestTarget = priority.get(enemyType);
+                }
+            }
+        	// if (enemy.getType() != RobotType.HEADQUARTERS) {
+        	// 	MapLocation enemyLocation = enemy.getLocation();
+        	// 	MapLocation robotLocation = rc.getLocation();
+            //     Pathing.moveTowards(rc, enemyLocation);
+        	// 	Direction moveDir = robotLocation.directionTo(enemyLocation);
+        	// 	if (rc.canMove(moveDir)) {
+        	// 		rc.move(moveDir);
+        	// 	}
+        	// }
+        }
+
+        Communication.tryWriteMessages(rc);
+
+        if(target != null){
+            MapLocation enemyLocation = target.getLocation();
+            if(target.getType() == RobotType.HEADQUARTERS){
+                //enemyLocation = rc.getLocation();
+                Direction moveDir = rc.getLocation().directionTo(enemyLocation).opposite();
+                if (rc.canMove(moveDir)) {
+                    rc.move(moveDir);
+                }
+                return;
+            }
+            MapLocation robotLocation = rc.getLocation();
+            //Pathing.moveTowards(rc, enemyLocation);
+            Direction moveDir = robotLocation.directionTo(enemyLocation);
+            if (rc.canMove(moveDir)) {
+                rc.move(moveDir);
+            }
+            Clock.yield();
+            return;
+        } else {
             // RobotInfo[] allies = rc.senseNearbyRobots(-1, rc.getTeam());
             // int lowestID = rc.getID();
             // MapLocation leaderPos = null;
@@ -89,13 +199,18 @@ public class LauncherStrategy {
             //     //Pathing.moveTowards(rc, RobotPlayer.center);
             //     rc.setIndicatorString("I'm the leader!");
             // }
-        //}
+        }
 
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);
         if(enemyLocation != null){
-            //MapLocation robotLocation = rc.getLocation();
+            MapLocation robotLocation = rc.getLocation();
             Pathing.moveTowards(rc, enemyLocation);
-            //rc.setIndicatorString(enemyLocation.toString());
+            rc.setIndicatorString(enemyLocation.toString());
+
+            // Direction moveDir = robotLocation.directionTo(enemyLocation);
+            // if (rc.canMove(moveDir)) {
+            //     rc.move(moveDir);
+            // }
         }
 
         // if(islandLoc == null) {
@@ -118,98 +233,34 @@ public class LauncherStrategy {
         }
         
         if(islandLoc != null){
+            //System.out.println(islandLoc.toString());
+            // MapLocation robotLocation = rc.getLocation();
+            // Direction moveDir = robotLocation.directionTo(islandLoc);
+            // if (rc.canMove(moveDir)) {
+            //     rc.move(moveDir);
+            // }
+
             Pathing.moveTowards(rc, islandLoc);
             if(rc.getLocation() == islandLoc || rc.canSenseRobotAtLocation(islandLoc)){
                 islandLoc = null; //expesive potenially
             } 
         }
-        if(followStep) explore(rc);
-        Communication.tryWriteMessages(rc);
 
+
+        // WellInfo[] wells = rc.senseNearbyWells();
+        // if (wells.length > 0){
+        //     MapLocation wellLoc = wells[0].getMapLocation();
+        //     Pathing.moveTowards(rc, wellLoc);
+        // }
 
         
-    }
-    static void attackStrat(RobotController rc) throws GameActionException{
-        RobotInfo [] enemies = rc.senseNearbyRobots(-1,rc.getTeam().opponent());
-        RobotInfo [] allies = rc.senseNearbyRobots(-1,rc.getTeam());
-        double x = 0.0;
-        double y = 0.0;
-        int total = 0;
-        if(enemies.length == 0) return;
-        if(!targetAndAttack(rc, enemies)) return;
-        for(RobotInfo enemy: enemies){
-            if(enemy.getType() == RobotType.CARRIER) continue;
-            total+=1;
-            MapLocation away = rc.getLocation().add(rc.getLocation().directionTo(enemy.getLocation()).opposite());
-            x += (away.x);
-            y += (away.y);
-        }
-        for(RobotInfo ally: allies){
-            if(ally.getType() == RobotType.CARRIER) continue;
-            total+=1;
-            MapLocation to = rc.getLocation().add(rc.getLocation().directionTo(ally.getLocation()));
-            x += (to.x);
-            y += (to.y);
-        }
-        x/=total;
-        y/=total;
-        MapLocation escape_regroup = new MapLocation((int)Math.round(x), (int)Math.round(y));
-        Pathing.moveTowards(rc, escape_regroup);
-    }
+        
+        // Also try to move randomly.
+        // Direction moveDir = rc.getLocation().directionTo(Communication.headquarterLocs[0]).opposite();
+        // if (rc.canMove(moveDir)) {
+        //     rc.move(moveDir);
+        // }
 
-    static boolean targetAndAttack(RobotController rc, RobotInfo [] enemies) throws GameActionException{
-        RobotInfo target = null;
-        int lowestHealth = 1000;
-        int smallestDistance = 1000;
-        int bestTarget = 6;
-        for (RobotInfo enemy: enemies){
-            if(enemy.getType() == RobotType.HEADQUARTERS){
-                Communication.addEHq(enemy, rc);
-                Direction moveDir = rc.getLocation().directionTo(enemy.getLocation()).opposite();
-                if (rc.canMove(moveDir)) {
-                    rc.move(moveDir);
-                    followStep = false;
-                }
-                continue;
-            }
-            Communication.reportEnemy(rc, enemy.location);
-            int enemyHealth = enemy.getHealth();
-            int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
-            RobotType enemyType = enemy.getType();
-            if (priority.containsKey(enemyType) && priority.get(enemyType) < bestTarget){
-                target = enemy;
-                lowestHealth = enemyHealth;
-                smallestDistance = enemyDistance;
-                bestTarget = priority.get(enemyType);
-            }
-            else if (enemyHealth < lowestHealth){
-                target = enemy;
-                lowestHealth = enemyHealth;
-                smallestDistance = enemyDistance;
-                bestTarget = priority.get(enemyType);
-            }
-            else if (enemyDistance < smallestDistance){
-                target = enemy;
-                smallestDistance = enemyDistance;
-                bestTarget = priority.get(enemyType);
-            }
-        }
-        if(target == null) return false;
-        if (rc.canAttack(target.getLocation())){
-            rc.attack(target.getLocation());
-            return true;
-        }else{
-            Pathing.moveTowards(rc, target.getLocation());
-            if (rc.canAttack(target.getLocation())){
-                rc.attack(target.getLocation());
-                return false;
-            }
-        }
-        return false;
-
-    }
-
-    static void explore(RobotController rc) throws GameActionException{
         if(rc.getLocation().distanceSquaredTo(RobotPlayer.center) < 6){
             //RobotPlayer.toCenter = false;
             if((survey && scanAmp(rc)) && rc.senseNearbyRobots(-1,rc.getTeam()).length > 30){
@@ -243,7 +294,7 @@ public class LauncherStrategy {
                     leaderPos = ally.getLocation();
                 }
             }
-            if (leaderPos != null && rc.getLocation().distanceSquaredTo(leaderPos) > 2){
+            if (leaderPos != null && rc.getLocation().distanceSquaredTo(leaderPos) > 9){
                 Pathing.moveTowards(rc, leaderPos);
                 rc.setIndicatorString("Following " + lowestID);
                 return;
@@ -263,8 +314,9 @@ public class LauncherStrategy {
         //     rc.move(dir);
         // }
 
-    }
 
+        
+    }
     static void scanIslands(RobotController rc) throws GameActionException {
         int[] ids = rc.senseNearbyIslands();
         for(int id : ids) {
@@ -280,27 +332,14 @@ public class LauncherStrategy {
 
     static void avoidHqKillRadius(RobotController rc) throws GameActionException{
         for(MapLocation ehq : Communication.eheadquarterLocs){
-            if(ehq != null && rc.getLocation().distanceSquaredTo(ehq) < RobotType.LAUNCHER.actionRadiusSquared){
+            if(ehq != null && rc.getLocation().distanceSquaredTo(ehq) < RobotType.HEADQUARTERS.actionRadiusSquared){
                 Direction moveDir = rc.getLocation().directionTo(ehq).opposite();
                 if (rc.canMove(moveDir)) {
                     rc.move(moveDir);
-                    return;
                 }
-                //Clock.yield();
+                Clock.yield();
             }
         }
-        for(RobotInfo enemy : rc.senseNearbyRobots(-1,rc.getTeam().opponent()))
-            if(enemy.getType() == RobotType.HEADQUARTERS){
-                MapLocation enemyLocation = enemy.getLocation();
-                if(rc.getLocation().distanceSquaredTo(enemyLocation) < RobotType.LAUNCHER.actionRadiusSquared){
-                    Direction moveDir = rc.getLocation().directionTo(enemyLocation).opposite();
-                    if (rc.canMove(moveDir)) {
-                        rc.move(moveDir);
-                        followStep = false;
-                        return;
-                    }
-                }
-            }
     }
 
     static boolean scanAmp(RobotController rc) throws GameActionException { // scan should only be on recon bots ex: amp and launcher

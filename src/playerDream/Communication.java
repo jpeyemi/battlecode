@@ -79,8 +79,8 @@ class Communication {
     }
     static void addWell(WellInfo w, RobotController rc) throws GameActionException{
         MapLocation loc = w.getMapLocation();
+        int iloc = locationToInt(rc, loc);
         for (int i = STARTING_WELL_INDEX; i < MAX_WELLS + STARTING_WELL_INDEX; i++) {
-            int iloc = locationToInt(rc, loc);
             if (rc.readSharedArray(i) == iloc) break;
             if (rc.readSharedArray(i) == 0) {
                 Message msg = new Message(i, locationToInt(rc, loc), RobotPlayer.turnCount);
@@ -122,14 +122,28 @@ class Communication {
     }
 
     static void updateHeadquarterInfo(RobotController rc) throws GameActionException {
-        if (RobotPlayer.turnCount == 2) {
-            for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-                headquarterLocs[i] = (intToLocation(rc, rc.readSharedArray(i)));
-                if (rc.readSharedArray(i) == 0) {
-                    break;
-                }
+        for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
+            headquarterLocs[i] = (intToLocation(rc, rc.readSharedArray(i)));
+            if (rc.readSharedArray(i) == 0) {
+                break;
             }
         }
+    }
+
+    static MapLocation getClosestHQ(RobotController rc) throws GameActionException{
+        MapLocation best = null;
+        int bestdist = 1000;
+        for(MapLocation hq: headquarterLocs){
+            if(hq == null){
+                continue;
+            }
+            int dist = rc.getLocation().distanceSquaredTo(hq);
+            if(best == null || dist < bestdist){
+                best = hq;
+                bestdist = dist;
+            }
+        }
+        return best;
     }
 
     static void tryWriteMessages(RobotController rc) throws GameActionException {
