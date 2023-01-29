@@ -6,7 +6,7 @@ import javax.naming.CommunicationException;
 
 import battlecode.common.*;
 
-public class LauncherStrategy {
+public class LauncherStrategy2 {
 
     /**
      * Run a single turn for a Launcher.
@@ -51,16 +51,47 @@ public class LauncherStrategy {
         scanIslands(rc);
         scanWells(rc);
         Communication.clearObsoleteEnemies(rc);
+        healingStrat(rc);
         attackStrat(rc);
         MapLocation [] clouds = rc.senseNearbyCloudLocations();
         if(clouds.length > 0){
             MapLocation cloud = clouds[RobotPlayer.rng.nextInt(clouds.length)];
             if(rc.canAttack(cloud))rc.attack(cloud);
         }
-       
-        healingStrat(rc);
-        moveToEnemies(rc);
-        islandDef(rc);
+
+
+        MapLocation enemyLocation= Communication.getClosestEnemy(rc);
+        if(enemyLocation != null){
+            //MapLocation robotLocation = rc.getLocation();
+            Pathing.moveTowards(rc, enemyLocation);
+            //rc.setIndicatorString(enemyLocation.toString());
+        }
+
+        // if(islandLoc == null) {
+        //     scanIslands(rc);
+        // }
+        if(islandLoc == null) {
+            double lowDistance = 1000;
+            for (int i = 0; i < GameConstants.MAX_NUMBER_ISLANDS; i++) {
+                MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+                if (islandNearestLoc != null) {
+                    float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+                    if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
+                        if(rc.getLocation() != islandNearestLoc && dist < lowDistance) {
+                            islandLoc = islandNearestLoc;
+                            lowDistance = dist;
+                        }
+                    }
+                }
+            }
+        }
+        if(islandLoc != null){
+            if(rc.canSenseLocation(islandLoc) && rc.senseTeamOccupyingIsland(rc.senseIsland(islandLoc)) != rc.getTeam().opponent()){
+                islandLoc = null;
+            }else{
+            Pathing.moveTowards(rc, islandLoc);
+            }
+        }
         if(followStep) explore(rc);
         Communication.tryWriteMessages(rc);
 
@@ -93,11 +124,9 @@ public class LauncherStrategy {
         y/=total;
         MapLocation escape_regroup = new MapLocation((int)Math.round(x), (int)Math.round(y));
         Pathing.moveTowards(rc, escape_regroup);
-        //targetAndAttack(rc, rc.senseNearbyRobots(-1,rc.getTeam().opponent()));
     }
 
     static boolean targetAndAttack(RobotController rc, RobotInfo [] enemies) throws GameActionException{
-        if(enemies.length == 0) return true;
         RobotInfo target = null;
         int lowestHealth = 1000;
         int smallestDistance = 1000;
@@ -144,35 +173,9 @@ public class LauncherStrategy {
                 rc.attack(target.getLocation());
                 return false;
             }
-            //return true;
         }
         return false;
 
-    }
-
-    static void islandDef(RobotController rc) throws GameActionException{
-        if(islandLoc == null) {
-            double lowDistance = 1000;
-            for (int i = 0; i < GameConstants.MAX_NUMBER_ISLANDS; i++) {
-                MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
-                if (islandNearestLoc != null) {
-                    float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-                    if(Communication.readTeamHoldingIsland(rc, i) != rc.getTeam()){ 
-                        if(rc.getLocation() != islandNearestLoc && dist < lowDistance) {
-                            islandLoc = islandNearestLoc;
-                            lowDistance = dist;
-                        }
-                    }
-                }
-            }
-        }
-        if(islandLoc != null){
-            if(rc.canSenseLocation(islandLoc) && rc.senseIsland(islandLoc) != -1 && rc.senseTeamOccupyingIsland(rc.senseIsland(islandLoc)) != rc.getTeam().opponent()){
-                islandLoc = null;
-            }else{
-                Pathing.moveTowards(rc, islandLoc);
-            }
-        }
     }
 
     static void healingStrat (RobotController rc) throws GameActionException{
@@ -201,19 +204,9 @@ public class LauncherStrategy {
             if((survey && scanAmp(rc)) && rc.senseNearbyRobots(-1,rc.getTeam()).length > 15){
                 RobotPlayer.toCenter =true;
                 if(RobotPlayer.explore.size()>0){
-                    boolean steady =  true;
-                    do{
-                        RobotPlayer.center = RobotPlayer.explore.get(0);
-                        RobotPlayer.explore.remove(0);
-
-                        for(MapLocation hq: Communication.headquarterLocs){
-                            if(hq.distanceSquaredTo(RobotPlayer.center) < 20){
-                                steady = false;
-                            }
-                        }
-                    }while (!steady && RobotPlayer.explore.size()>0);
+                    RobotPlayer.center = RobotPlayer.explore.get(0);
+                    RobotPlayer.explore.remove(0);
                 }
-                
             }
         }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
             if(RobotPlayer.toCenter == false){
@@ -261,29 +254,15 @@ public class LauncherStrategy {
 
     }
 
-    static void moveToEnemies(RobotController rc) throws GameActionException{
-        int lcount = 0;
-        for(RobotInfo r: rc.senseNearbyRobots(-1,rc.getTeam())){
-            if(r.getType() == RobotType.LAUNCHER) lcount++;
-        }
-        if(lcount < 4) return;
-        MapLocation enemyLocation= Communication.getClosestEnemy(rc);
-        
-        if(enemyLocation != null){
-            Pathing.moveTowards(rc, enemyLocation);
-            //rc.setIndicatorString(enemyLocation.toString());
-        }
-    }
-
     static void scanIslands(RobotController rc) throws GameActionException {
         int[] ids = rc.senseNearbyIslands();
         for(int id : ids) {
-            if(rc.senseTeamOccupyingIsland(id) == rc.getTeam().opponent()) {
-                MapLocation[] locs = rc.senseNearbyIslandLocations(id);
-                if(locs.length > 0) {
-                    islandLoc = locs[0];
-                }
-            }
+            // if(rc.senseTeamOccupyingIsland(id) == rc.getTeam().opponent()) {
+            //     MapLocation[] locs = rc.senseNearbyIslandLocations(id);
+            //     if(locs.length > 0) {
+            //         islandLoc = locs[0];
+            //     }
+            // }
             Communication.updateIslandInfo(rc, id);
         }
     }

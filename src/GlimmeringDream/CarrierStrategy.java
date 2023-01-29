@@ -1,4 +1,4 @@
-package playerDream;
+package GlimmeringDream;
 
 import java.util.ArrayList;
 
@@ -19,6 +19,7 @@ public class CarrierStrategy {
     static MapLocation movingto;
     static int movingtocount = 0;
     static ArrayList <MapLocation> blacklist = new ArrayList<MapLocation>();
+    static boolean runHome = false;
 
     /**
      * Run a single turn for a Carrier.
@@ -30,7 +31,6 @@ public class CarrierStrategy {
         }
         enemy = false;
         //if(hqLoc == null) 
-
         //scanHQ(rc);
         scanWells(rc);
         if(wellLoc == null && wellLocs.size() > 0){
@@ -67,6 +67,10 @@ public class CarrierStrategy {
         if (enemy){
             enemy(rc);
         }
+        if(runHome){
+            Pathing.moveTowards(rc, hqLoc);
+            wellLoc = null;
+        }
 
         if(wellLoc != null && rc.canCollectResource(wellLoc, -1)){ 
             rc.collectResource(wellLoc, -1);
@@ -91,6 +95,7 @@ public class CarrierStrategy {
 
         
         //no resources -> look for well
+        healingStrat(rc);
         if(anchorMode) {
             anchorStrat(rc);
         } else {
@@ -106,16 +111,15 @@ public class CarrierStrategy {
                         wellLoc = null;
                     }
                 }else{
-                    for (Direction currentDirection: RobotPlayer.directions) {
-                        MapLocation sensing = rc.getLocation().add(currentDirection);
-                        if(!rc.canSenseLocation(sensing)) continue;
-                        MapInfo movetile = rc.senseMapInfo(sensing);
-                        if (rc.canSenseLocation(sensing)&& sensing.isAdjacentTo(wellLoc) && rc.canMove(currentDirection) && !rc.canSenseRobotAtLocation(sensing) && (!(movetile.getCurrentDirection() == currentDirection.opposite()) || movetile.getCurrentDirection() == Direction.CENTER)) {
-                            rc.move(currentDirection);
-                        }
-                    }
+                    // for (Direction currentDirection: RobotPlayer.directions) {
+                    //     MapLocation sensing = rc.getLocation().add(currentDirection);
+                    //     if(!rc.canSenseLocation(sensing)) continue;
+                    //     MapInfo movetile = rc.senseMapInfo(sensing);
+                    //     if (rc.canSenseLocation(sensing)&& sensing.isAdjacentTo(wellLoc) && rc.canMove(currentDirection) && !rc.canSenseRobotAtLocation(sensing) && (!(movetile.getCurrentDirection() == currentDirection.opposite()) || movetile.getCurrentDirection() == Direction.CENTER)) {
+                    //         rc.move(currentDirection);
+                    //     }
+                    // }
                 }
-                
             }
             if(total >= GameConstants.CARRIER_CAPACITY-1) {
                 //move towards HQ
@@ -129,6 +133,26 @@ public class CarrierStrategy {
         // }
         
         Communication.tryWriteMessages(rc);
+    }
+
+    static void healingStrat (RobotController rc) throws GameActionException{
+        if(rc.getHealth() > RobotType.CARRIER.getMaxHealth()/3) return;
+        MapLocation healthIsland = null;
+        int distance = 1000;
+        for (int i = 0; i < GameConstants.MAX_NUMBER_ISLANDS; i++) {
+            MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
+            if (islandNearestLoc != null) {
+                int dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
+                if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam()){ 
+                    if(rc.getLocation() != islandNearestLoc && dist < distance) {
+                        healthIsland = islandNearestLoc;
+                        distance = dist;
+                    }
+                }
+            }
+        }
+        if(healthIsland != null)
+            Pathing.moveTowards(rc, healthIsland);
     }
 
     static void anchorStrat(RobotController rc) throws GameActionException{
@@ -209,6 +233,7 @@ public class CarrierStrategy {
             rc.attack(target.getLocation());
         }
         Pathing.moveTowards(rc, escape);
+
         wellLoc = null;
 
         
@@ -220,6 +245,7 @@ public class CarrierStrategy {
         for(RobotInfo robot : robots) {
             if(robot.getTeam() == rc.getTeam() && robot.getType() == RobotType.HEADQUARTERS) {
                 hqLoc = robot.getLocation();
+                if(rc.getLocation().distanceSquaredTo(hqLoc) < RobotType.CARRIER.actionRadiusSquared) runHome = false;
                 break;
             }
         }

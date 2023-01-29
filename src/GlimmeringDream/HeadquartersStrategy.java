@@ -1,4 +1,4 @@
-package playerDream;
+package GlimmeringDream;
 
 import battlecode.common.*;
 
@@ -78,9 +78,9 @@ class HeadquartersStrategy{
 
     static void buildStrat(RobotController rc) throws GameActionException{
         Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
+        MapLocation newLoc = rc.getLocation().add(dir);//.add(dir);
         
-        if (RobotPlayer.turnCount % 100 == 20){
+        if (RobotPlayer.turnCount % 70 == 20){
             rc.setIndicatorString("Trying to build a Amplifier");
             if (rc.canBuildRobot(RobotType.AMPLIFIER, newLoc)) {
                 rc.buildRobot(RobotType.AMPLIFIER, newLoc);
@@ -93,6 +93,7 @@ class HeadquartersStrategy{
             while(buildAll){
                 if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                     rc.buildRobot(RobotType.CARRIER, newLoc);
+                    //newLoc = rc.getLocation().add(dir).add(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
                 }else{
                     buildAll = false;
                 }
@@ -102,11 +103,13 @@ class HeadquartersStrategy{
                 while(buildAll){
                     if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                        //newLoc = rc.getLocation().add(dir).add(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
                     }else{
                         buildAll = false;
                     }
                 }
             }
+            
         }
         //else if(carrierCount > 10){
         // else if(RobotPlayer.turnCount > 50){
@@ -140,6 +143,8 @@ class HeadquartersStrategy{
         while(buildAll && rc.getResourceAmount(ResourceType.ADAMANTIUM) > 120){
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
+                // dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
+                // newLoc = rc.getLocation().add(dir).add(RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)]);
             }else{
                 buildAll = false;
             }
@@ -161,7 +166,7 @@ class HeadquartersStrategy{
             }
             else{
                 dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
-                newLoc = rc.getLocation().add(dir);
+                newLoc = rc.getLocation().add(dir);//.add(dir);
             }
         }
         rc.setIndicatorString("Trying to build a launcher");

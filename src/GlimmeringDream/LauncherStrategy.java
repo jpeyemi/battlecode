@@ -1,4 +1,4 @@
-package playerDream;
+package GlimmeringDream;
 
 import java.util.HashMap;
 
@@ -157,7 +157,7 @@ public class LauncherStrategy {
                 MapLocation islandNearestLoc = Communication.readIslandLocation(rc, i);
                 if (islandNearestLoc != null) {
                     float dist = rc.getLocation().distanceSquaredTo(islandNearestLoc);
-                    if(Communication.readTeamHoldingIsland(rc, i) != rc.getTeam()){ 
+                    if(Communication.readTeamHoldingIsland(rc, i) == rc.getTeam().opponent()){ 
                         if(rc.getLocation() != islandNearestLoc && dist < lowDistance) {
                             islandLoc = islandNearestLoc;
                             lowDistance = dist;
@@ -167,10 +167,10 @@ public class LauncherStrategy {
             }
         }
         if(islandLoc != null){
-            if(rc.canSenseLocation(islandLoc) && rc.senseIsland(islandLoc) != -1 && rc.senseTeamOccupyingIsland(rc.senseIsland(islandLoc)) != rc.getTeam().opponent()){
+            if(rc.canSenseLocation(islandLoc) && rc.senseTeamOccupyingIsland(rc.senseIsland(islandLoc)) != rc.getTeam().opponent()){
                 islandLoc = null;
             }else{
-                Pathing.moveTowards(rc, islandLoc);
+            Pathing.moveTowards(rc, islandLoc);
             }
         }
     }
@@ -201,19 +201,9 @@ public class LauncherStrategy {
             if((survey && scanAmp(rc)) && rc.senseNearbyRobots(-1,rc.getTeam()).length > 15){
                 RobotPlayer.toCenter =true;
                 if(RobotPlayer.explore.size()>0){
-                    boolean steady =  true;
-                    do{
-                        RobotPlayer.center = RobotPlayer.explore.get(0);
-                        RobotPlayer.explore.remove(0);
-
-                        for(MapLocation hq: Communication.headquarterLocs){
-                            if(hq.distanceSquaredTo(RobotPlayer.center) < 20){
-                                steady = false;
-                            }
-                        }
-                    }while (!steady && RobotPlayer.explore.size()>0);
+                    RobotPlayer.center = RobotPlayer.explore.get(0);
+                    RobotPlayer.explore.remove(0);
                 }
-                
             }
         }else if(RobotPlayer.myhq != null && rc.getLocation().distanceSquaredTo(RobotPlayer.myhq) < 3){
             if(RobotPlayer.toCenter == false){
@@ -262,11 +252,7 @@ public class LauncherStrategy {
     }
 
     static void moveToEnemies(RobotController rc) throws GameActionException{
-        int lcount = 0;
-        for(RobotInfo r: rc.senseNearbyRobots(-1,rc.getTeam())){
-            if(r.getType() == RobotType.LAUNCHER) lcount++;
-        }
-        if(lcount < 4) return;
+        if(rc.senseNearbyRobots(-1,rc.getTeam()).length < 4) return;
         MapLocation enemyLocation= Communication.getClosestEnemy(rc);
         
         if(enemyLocation != null){

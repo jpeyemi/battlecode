@@ -1,4 +1,4 @@
-package playerDream;
+package GlimmeringDream;
 
 import battlecode.common.*;
 
@@ -77,8 +77,6 @@ public strictfp class RobotPlayer {
         myhq = rc.getLocation();
         int x = myhq.x;
         int y = myhq.y;
-        MapLocation ex;
-        ex = new MapLocation(rc.getMapWidth()-x,rc.getMapHeight());
         explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()));
         explore.add(new MapLocation(rc.getMapWidth()-x,rc.getMapHeight()-y));
         explore.add(new MapLocation(rc.getMapWidth(),rc.getMapHeight()-y));

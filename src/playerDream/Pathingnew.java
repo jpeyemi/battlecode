@@ -4,21 +4,29 @@ import battlecode.common.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.PriorityQueue;
+
+import javax.naming.directory.DirContext;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
-public class Pathing {
+public class Pathingnew {
     // Basic bug nav - Bug 0
     static MapLocation lastPos = null;
     static Direction currentDirection = null;
+    static Direction [] outdirs = null;
     static boolean followingObstacle = false;
     static MapLocation start = null;
     static MapLocation end = null;
-    static Boolean bugdir = null;
+    static MapLocation t = null;
     static void moveTowards(RobotController rc, MapLocation target) throws GameActionException {
-        //if(RobotPlayer.turnCount % 100 == 0) bugdir = !bugdir;
         rc.setIndicatorString(target.toString());
+        if(t != target){
+            t = target;
+            outdirs = null;
+        }
         if (rc.getLocation() == target) {
             return;
         }
@@ -28,51 +36,41 @@ public class Pathing {
         Direction d = rc.getLocation().directionTo(target);
         MapInfo movetile;
         MapLocation sensing;
-        if (rc.canMove(d)) {
+        if (rc.canMove(d) && (outdirs == null || Arrays.asList(outdirs).contains(d))){
             movetile = rc.senseMapInfo(rc.getLocation().add(d));
-            while(rc.canMove(d) && !rc.getLocation().add(d).equals(lastPos) && (!(movetile.getCurrentDirection() == d.opposite())|| movetile.getCurrentDirection() == Direction.CENTER)){
-                lastPos = rc.getLocation();
+            while(rc.canMove(d) && (!(movetile.getCurrentDirection() == d.opposite())|| movetile.getCurrentDirection() == Direction.CENTER)){
                 rc.move(d);
             }
             currentDirection = null; // there is no obstacle we're going around
-            bugdir = null;
-
+            outdirs = null;
         } else {
             // Going around some obstacle: can't move towards d because there's an obstacle there
             // Idea: keep the obstacle on our right hand
-            if(bugdir == null){
-                MapLocation r = rc.getLocation().add(d.rotateRight());
-                MapLocation l = rc.getLocation().add(d.rotateLeft());
-                if(r.distanceSquaredTo(target) < l.distanceSquaredTo(target)){
-                    bugdir = false;
-                }else{
-                    bugdir = true;
-                }
-            }
+
             if (currentDirection == null) {
                 currentDirection = d;
+                outdirs = new Direction[] {d.rotateLeft(),d.rotateLeft().rotateRight(),d.rotateRight()};
             }
-
             // Try to move in a way that keeps the obstacle on our right
+            // for (Direction dir : outdirs){
+            //     sensing = rc.getLocation().add(dir);
+            //     if(!rc.canSenseLocation(sensing)) continue;
+            //     movetile = rc.senseMapInfo(sensing);
+            //     if (rc.canSenseLocation(sensing) && rc.canMove(dir) && !rc.canSenseRobotAtLocation(sensing) && (!(movetile.getCurrentDirection() == d.opposite()) || movetile.getCurrentDirection() == Direction.CENTER)) {
+            //         rc.move(dir);
+            //     }
+            // }
             for (int i = 0; i < 8; i++) {
                 sensing = rc.getLocation().add(currentDirection);
                 if(!rc.canSenseLocation(sensing)) continue;
                 movetile = rc.senseMapInfo(sensing);
                 rc.setIndicatorString(sensing.toString());
-                if (rc.canSenseLocation(sensing) && !rc.getLocation().add(currentDirection).equals(lastPos) && rc.canMove(currentDirection) && !rc.canSenseRobotAtLocation(sensing) && (!(movetile.getCurrentDirection() == currentDirection.opposite()) || movetile.getCurrentDirection() == Direction.CENTER)) {
-                    lastPos = rc.getLocation();
+                if (rc.canSenseLocation(sensing) && rc.canMove(currentDirection) && !rc.canSenseRobotAtLocation(sensing) && (!(movetile.getCurrentDirection() == d.opposite()) || movetile.getCurrentDirection() == Direction.CENTER)) {
                     rc.move(currentDirection);
-                    if(bugdir)
-                        currentDirection = currentDirection.rotateRight();
-                    else{
-                        currentDirection = currentDirection.rotateLeft();
-                    }
+                    currentDirection = currentDirection.rotateRight();
                     break;
                 } else {
-                    if(bugdir)
-                        currentDirection = currentDirection.rotateLeft();
-                    else
-                        currentDirection = currentDirection.rotateRight();
+                    currentDirection = currentDirection.rotateLeft();
                 }
             }
         }
